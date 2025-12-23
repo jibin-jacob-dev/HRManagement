@@ -17,7 +17,7 @@
     flex: 1;
     overflow-y: auto;
     background-color: var(--bs-tertiary-bg); /* Contrast color */
-    padding: 1rem;
+    padding: 2rem;
 }
 
 .navbar {
