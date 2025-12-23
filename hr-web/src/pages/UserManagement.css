@@ -1,0 +1,92 @@
+/* User Management Premium Styles */
+
+.user-management-container {
+    padding: 2rem;
+    background-color: transparent;
+}
+
+/* Transitions for Theme Switching */
+.ag-theme-quartz, 
+.ag-theme-quartz-dark {
+    transition: all 0.3s ease !important;
+}
+
+/* Custom Scrollbar for Grid */
+.ag-body-viewport {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(155, 155, 155, 0.5) transparent;
+}
+
+.ag-body-viewport::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+.ag-body-viewport::-webkit-scrollbar-thumb {
+    background: rgba(155, 155, 155, 0.5);
+    border-radius: 10px;
+}
+
+/* Grid Header Refinement */
+.ag-header {
+    font-weight: 600 !important;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.05em;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05) !important;
+}
+
+[data-bs-theme='dark'] .ag-header {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+}
+
+/* Search Box Container */
+.search-box-wrapper {
+    position: relative;
+    max-width: 300px;
+}
+
+.search-icon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #adb5bd;
+    pointer-events: none;
+}
+
+.search-input {
+    padding-left: 35px !important;
+    border-radius: 8px !important;
+    border: 1px solid rgba(0, 0, 0, 0.1) !important;
+    font-size: 0.9rem !important;
+    transition: all 0.2s ease !important;
+}
+
+[data-bs-theme='dark'] .search-input {
+    background-color: #1e1e1e !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+    color: #fff !important;
+}
+
+.search-input:focus {
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.15) !important;
+}
+
+/* Action Buttons */
+.grid-action-btn {
+    transition: transform 0.2s ease;
+}
+
+.grid-action-btn:hover {
+    transform: scale(1.1);
+}
+
+/* Row Hover Effect */
+.ag-row-hover {
+    background-color: rgba(13, 110, 253, 0.03) !important;
+}
+
+[data-bs-theme='dark'] .ag-row-hover {
+    background-color: rgba(13, 110, 253, 0.08) !important;
+}

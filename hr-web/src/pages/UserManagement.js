@@ -10,6 +10,7 @@ import Layout from '../components/layout/Layout';
 // AG Grid Styles
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-quartz.css';
+import './UserManagement.css';
 
 // Register AG Grid Modules for v35
 ModuleRegistry.registerModules([AllCommunityModule]);
@@ -22,6 +23,8 @@ const UserManagement = () => {
     const [showModal, setShowModal] = useState(false);
     const [modalMode, setModalMode] = useState('edit'); // 'add' or 'edit'
     const [selectedUser, setSelectedUser] = useState(null);
+    const [quickFilterText, setQuickFilterText] = useState('');
+    
     const [formData, setFormData] = useState({
         email: '',
         password: '',
@@ -40,17 +43,12 @@ const UserManagement = () => {
         try {
             setLoading(true);
             const data = await userService.getUsers();
-            console.log('Fetched users data:', data);
             
-            // AG-Grid v35 expects an array. Handle possible wrapping or non-array responses.
             let usersArray = [];
             if (Array.isArray(data)) {
                 usersArray = data;
             } else if (data && typeof data === 'object' && Array.isArray(data.value)) {
                 usersArray = data.value;
-            } else if (data && typeof data === 'object') {
-                // If it's an object but not a list, maybe it's a single user or something else
-                console.warn('Expected array or {value: []} but got:', data);
             }
             
             setUsers(usersArray);
@@ -117,26 +115,54 @@ const UserManagement = () => {
     };
 
     const handleRoleToggle = (role) => {
-        const updatedRoles = (formData.roles || []).includes(role)
-            ? formData.roles.filter(r => r !== role)
-            : [...(formData.roles || []), role];
+        const currentRoles = Array.isArray(formData.roles) ? formData.roles : [];
+        const updatedRoles = currentRoles.includes(role)
+            ? currentRoles.filter(r => r !== role)
+            : [...currentRoles, role];
         setFormData({ ...formData, roles: updatedRoles });
     };
 
     const columnDefs = useMemo(() => [
-        { field: 'firstName', headerName: 'First Name', sortable: true, filter: true },
-        { field: 'lastName', headerName: 'Last Name', sortable: true, filter: true },
-        { field: 'email', headerName: 'Email', sortable: true, filter: true, flex: 1 },
+        { 
+            field: 'firstName', 
+            headerName: 'First Name', 
+            sortable: true, 
+            filter: true,
+            cellClass: 'd-flex align-items-center'
+        },
+        { 
+            field: 'lastName', 
+            headerName: 'Last Name', 
+            sortable: true, 
+            filter: true,
+            cellClass: 'd-flex align-items-center'
+        },
+        { 
+            field: 'email', 
+            headerName: 'Email Address', 
+            sortable: true, 
+            filter: true, 
+            flex: 1.5,
+            cellClass: 'd-flex align-items-center fw-medium text-primary'
+        },
         { 
             field: 'roles', 
             headerName: 'Roles', 
+            flex: 1,
             cellRenderer: (params) => {
                 const userRoles = params.value || params.data?.roles || [];
                 if (!Array.isArray(userRoles)) return null;
                 return (
-                    <div className="d-flex gap-1 h-100 align-items-center">
+                    <div className="d-flex gap-1 h-100 align-items-center flex-wrap">
                         {userRoles.map(role => (
-                            <Badge key={role} bg="info" className="fw-normal">{role}</Badge>
+                            <Badge 
+                                key={role} 
+                                bg="none" 
+                                className="fw-normal border text-dark bg-light-subtle"
+                                style={{ fontSize: '0.7rem' }}
+                            >
+                                {role}
+                            </Badge>
                         ))}
                     </div>
                 );
@@ -145,47 +171,71 @@ const UserManagement = () => {
         { 
             field: 'isActive', 
             headerName: 'Status', 
-            width: 120,
+            width: 110,
             cellRenderer: (params) => (
-                <Badge bg={params.value ? 'success' : 'danger'}>
-                    {params.value ? 'Active' : 'Inactive'}
-                </Badge>
+                <div className="d-flex h-100 align-items-center">
+                    <Badge 
+                        bg={params.value ? 'success' : 'secondary'} 
+                        className={`rounded-pill px-3 ${params.value ? 'bg-opacity-10 text-success border border-success' : 'bg-opacity-10 text-secondary border border-secondary'}`}
+                        style={{ fontSize: '0.7rem' }}
+                    >
+                        {params.value ? 'Active' : 'Inactive'}
+                    </Badge>
+                </div>
             )
         },
         {
             headerName: 'Actions',
             width: 100,
+            sortable: false,
+            filter: false,
             cellRenderer: (params) => (
-                <Button variant="outline-primary" size="sm" onClick={() => handleEdit(params.data)}>
-                    <i className="fas fa-edit"></i>
-                </Button>
+                <div className="d-flex h-100 align-items-center justify-content-center">
+                    <Button 
+                        variant="link" 
+                        className="p-0 grid-action-btn text-primary" 
+                        onClick={() => handleEdit(params.data)}
+                    >
+                        <i className="fas fa-edit"></i>
+                    </Button>
+                </div>
             )
         }
     ], []);
 
     const defaultColDef = useMemo(() => ({
         resizable: true,
-        flex: 1
+        flex: 1,
+        minWidth: 100
     }), []);
 
     const gridTheme = isDarkMode ? 'ag-theme-quartz-dark' : 'ag-theme-quartz';
 
     return (
         <Layout>
-            <Container fluid className="py-4">
-                <div className="d-flex justify-content-between align-items-center mb-4">
+            <Container fluid className="user-management-container">
+                <div className="d-flex justify-content-between align-items-end mb-4">
                     <div>
-                        <h2 className="mb-1">User Management</h2>
-                        <p className="text-muted small mb-0">Manage system users, roles, and permissions</p>
+                        <h2 className="mb-1 fw-bold">User Management</h2>
+                        <p className="text-muted small mb-0">Total system users: <span className="fw-bold text-primary">{users.length}</span></p>
                     </div>
-                    <div className="d-flex gap-2">
-                        <Button variant="primary" onClick={handleAdd}>
+                    <div className="d-flex gap-3 align-items-center">
+                        <div className="search-box-wrapper">
+                            <i className="fas fa-search search-icon"></i>
+                            <Form.Control
+                                type="text"
+                                className="search-input"
+                                placeholder="Search records..."
+                                value={quickFilterText}
+                                onChange={(e) => setQuickFilterText(e.target.value)}
+                            />
+                        </div>
+                        <Button variant="primary" className="px-4 shadow-sm" onClick={handleAdd}>
                             <i className="fas fa-plus me-2"></i>
                             Add User
                         </Button>
-                        <Button variant="outline-secondary" onClick={fetchData} disabled={loading}>
-                            <i className={`fas fa-sync-alt ${loading ? 'fa-spin' : ''} me-2`}></i>
-                            Refresh
+                        <Button variant="outline-secondary" className="shadow-sm" onClick={fetchData} disabled={loading}>
+                            <i className={`fas fa-sync-alt ${loading ? 'fa-spin' : ''}`}></i>
                         </Button>
                     </div>
                 </div>
@@ -195,8 +245,8 @@ const UserManagement = () => {
                         {loading ? (
                             <div className="d-flex justify-content-center align-items-center" style={{ height: '600px' }}>
                                 <div className="text-center">
-                                    <div className="spinner-border text-primary mb-2" role="status"></div>
-                                    <p className="text-muted">Loading users...</p>
+                                    <div className="spinner-border text-primary mb-3" role="status"></div>
+                                    <p className="text-muted fw-medium">Loading User Directory...</p>
                                 </div>
                             </div>
                         ) : (
@@ -208,6 +258,7 @@ const UserManagement = () => {
                                     animateRows={true}
                                     pagination={true}
                                     paginationPageSize={10}
+                                    quickFilterText={quickFilterText}
                                 />
                             </div>
                         )}
