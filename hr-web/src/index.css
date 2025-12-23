@@ -5,9 +5,40 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background-color: var(--bs-body-bg);
+  color: var(--bs-body-color);
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+/* Targeted Transitions to Prevent Flickering */
+.card, .alert, .btn, .form-control, .list-group-item, .dropdown-menu {
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease !important;
+}
+
+[data-bs-theme='dark'] body {
+  background-color: #121212;
+}
+
+.bg-light-subtle {
+  transition: background-color 0.3s ease;
+}
+
+.form-control {
+  cursor: text !important;
+}
+
+.btn {
+  cursor: pointer !important;
+}
+
+.no-caret::after {
+  display: none !important;
+}
+
+.btn-link {
+  text-decoration: none !important;
+}
+
+.btn-link:hover, .btn-link:focus {
+  text-decoration: none !important;
 }

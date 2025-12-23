@@ -14,15 +14,18 @@ public class AuthController : ControllerBase
 {
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly SignInManager<ApplicationUser> _signInManager;
+    private readonly RoleManager<ApplicationRole> _roleManager;
     private readonly IConfiguration _configuration;
 
     public AuthController(
         UserManager<ApplicationUser> userManager,
         SignInManager<ApplicationUser> signInManager,
+        RoleManager<ApplicationRole> roleManager,
         IConfiguration configuration)
     {
         _userManager = userManager;
         _signInManager = signInManager;
+        _roleManager = roleManager;
         _configuration = configuration;
     }
 
@@ -47,7 +50,10 @@ public class AuthController : ControllerBase
             return BadRequest(result.Errors);
 
         // Assign default role
-        await _userManager.AddToRoleAsync(user, "Employee");
+        if (await _roleManager.RoleExistsAsync("Employee"))
+        {
+            await _userManager.AddToRoleAsync(user, "Employee");
+        }
 
         return Ok(new { message = "User registered successfully" });
     }

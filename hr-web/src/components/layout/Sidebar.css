@@ -1,0 +1,132 @@
+.sidebar {
+    width: 250px;
+    height: 100vh;
+    transition: width 0.3s ease-in-out;
+    overflow-x: hidden;
+    white-space: nowrap;
+    background-color: var(--bs-body-bg);
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0; /* Prevents shrinking in flex container */
+    border-right: 1px solid var(--bs-border-color-translucent); /* Optional: Adds subtle separation */
+}
+
+/* Mobile: Revert to Fixed Overlay */
+@media (max-width: 991.98px) {
+    .sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        z-index: 1100;
+        box-shadow: 4px 0 10px rgba(0,0,0,0.1);
+    }
+}
+
+.sidebar.collapsed {
+    width: 70px;
+}
+
+/* --- Brand Section --- */
+.sidebar-brand {
+    height: 64px;
+    display: flex;
+    align-items: center;
+    padding: 0 14px;
+    margin: 0 8px 1rem 8px;
+    overflow: hidden;
+}
+
+@media (max-width: 991.98px) {
+    .sidebar-brand {
+        padding-right: 20px; /* Space for close button */
+    }
+}
+
+/* --- Navigation Links --- */
+.sidebar .nav-link {
+    display: flex;
+    align-items: center;
+    height: 48px;
+    padding: 0 14px;
+    margin: 4px 8px;
+    border-radius: 8px;
+    opacity: 1;
+    overflow: hidden;
+}
+
+/* Icon Styling */
+.sidebar .nav-link i,
+.sidebar-brand i {
+    min-width: 24px;
+    width: 24px;
+    text-align: center;
+    font-size: 1.2rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+/* Sidebar Text */
+.sidebar .sidebar-text {
+    margin-left: 14px;
+    white-space: nowrap;
+    opacity: 1;
+    display: inline-block;
+}
+
+/* --- Collapsed State Overrides --- */
+.sidebar.collapsed .nav-link,
+.sidebar.collapsed .sidebar-brand {
+    /* padding, margin, and justify-content REMOVED to match expanded state perfectly */
+    /* Only border-radius adjustment if needed, but keeping standard fits fine */
+    width: calc(100% - 16px); /* Explicit constraint to ensure margins don't break layout */
+}
+
+.sidebar.collapsed .sidebar-text {
+    display: none;
+}
+
+/* --- Colors & Hover States --- */
+/* Light Mode */
+.sidebar .nav-link, .sidebar-brand { color: #000 !important; }
+/* Dark Mode */
+[data-bs-theme="dark"] .sidebar .nav-link,
+[data-bs-theme="dark"] .sidebar-brand { color: #fff !important; }
+/* Active State */
+.sidebar .nav-link.active-link {
+    background-color: var(--bs-primary);
+    color: #fff !important;
+    box-shadow: 0 4px 12px rgba(var(--bs-primary-rgb), 0.25);
+}
+/* Hover State */
+.sidebar .nav-link:hover:not(.active-link) {
+    background-color: var(--bs-secondary-bg);
+}
+
+@media (max-width: 991.98px) {
+    .sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        z-index: 1200; /* Above everything */
+        transition: left 0.3s ease-in-out, width 0.3s ease-in-out;
+        box-shadow: 4px 0 15px rgba(0,0,0,0.1);
+    }
+
+    .sidebar.collapsed {
+        left: -280px !important; /* Fully Hide on mobile */
+        width: 250px; /* Keep full width for when it slides in */
+    }
+}
+
+.sidebar-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.4);
+    z-index: 1150;
+    backdrop-filter: blur(2px);
+}
