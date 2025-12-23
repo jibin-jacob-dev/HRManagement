@@ -75,6 +75,7 @@ public class AuthController : ControllerBase
         if (!result.Succeeded)
             return Unauthorized(new { message = "Invalid email or password" });
 
+        var roles = await _userManager.GetRolesAsync(user);
         var token = await GenerateJwtToken(user);
 
         return Ok(new
@@ -86,7 +87,8 @@ public class AuthController : ControllerBase
                 user.Email,
                 user.FirstName,
                 user.LastName,
-                user.EmployeeId
+                user.EmployeeId,
+                Roles = roles
             }
         });
     }

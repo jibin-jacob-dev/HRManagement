@@ -1,0 +1,16 @@
+import React from 'react';
+import { Card } from 'react-bootstrap';
+
+const GridContainer = ({ children, height = '600px' }) => {
+    return (
+        <Card className="shadow-sm border-0 overflow-hidden" style={{ borderRadius: '15px' }}>
+            <Card.Body className="p-0">
+                <div style={{ height, width: '100%' }}>
+                    {children}
+                </div>
+            </Card.Body>
+        </Card>
+    );
+};
+
+export default GridContainer;

@@ -127,6 +127,30 @@ using (var scope = app.Services.CreateScope())
             await roleManager.CreateAsync(new ApplicationRole { Name = role });
         }
     }
+
+    // Seed Admin User
+    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+    var adminEmail = "drego@gmail.com";
+    var adminUser = await userManager.FindByEmailAsync(adminEmail);
+    if (adminUser == null)
+    {
+        adminUser = new ApplicationUser
+        {
+            UserName = adminEmail,
+            Email = adminEmail,
+            FirstName = "Drego",
+            LastName = "Admin",
+            IsActive = true,
+            EmailConfirmed = true
+        };
+        await userManager.CreateAsync(adminUser, "Admin@1234");
+    }
+
+    // Ensure the user is in Admin role
+    if (!await userManager.IsInRoleAsync(adminUser, "Admin"))
+    {
+        await userManager.AddToRoleAsync(adminUser, "Admin");
+    }
 }
 
 app.MapControllers();

@@ -1,9 +1,12 @@
 import React from 'react';
 import { Nav, Button } from 'react-bootstrap';
 import { NavLink } from 'react-router-dom';
+import { authService } from '../../services/api';
 import './Sidebar.css';
 
 const Sidebar = ({ isCollapsed, toggleSidebar }) => {
+    const isAdmin = authService.isAdmin();
+
     return (
         <>
             {/* Mobile Overlay */}
@@ -39,6 +42,18 @@ const Sidebar = ({ isCollapsed, toggleSidebar }) => {
                             <span className="sidebar-text">Dashboard</span>
                         </Nav.Link>
                     </Nav.Item>
+
+                    <Nav.Item>
+                        <Nav.Link 
+                            as={NavLink} 
+                            to="/user-management" 
+                            className={({ isActive }) => `${isActive ? 'active-link' : 'sidebar-link'}`}
+                        >
+                            <i className="fas fa-user-shield"></i>
+                            <span className="sidebar-text">User Management</span>
+                        </Nav.Link>
+                    </Nav.Item>
+
                     <Nav.Item>
                         <Nav.Link 
                             as={NavLink} 

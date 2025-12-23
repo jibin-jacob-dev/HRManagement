@@ -7,6 +7,8 @@ import Login from './components/auth/Login';
 import Register from './components/auth/Register';
 import Dashboard from './components/dashboard/Dashboard';
 
+import UserManagement from './pages/UserManagement';
+
 // Simple component to protect routes
 const ProtectedRoute = ({ children }) => {
     const token = localStorage.getItem('token');
@@ -25,6 +27,14 @@ function App() {
                         element={
                             <ProtectedRoute>
                                 <Dashboard />
+                            </ProtectedRoute>
+                        } 
+                    />
+                    <Route 
+                        path="/user-management" 
+                        element={
+                            <ProtectedRoute>
+                                <UserManagement />
                             </ProtectedRoute>
                         } 
                     />
