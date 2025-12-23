@@ -1,15 +1,13 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Container, Card, Button, Modal, Form, Badge } from 'react-bootstrap';
 import { AgGridReact } from 'ag-grid-react';
-import { ModuleRegistry, AllCommunityModule } from 'ag-grid-community';
+import { ModuleRegistry, AllCommunityModule, themeQuartz, colorSchemeDark } from 'ag-grid-community';
 import { userService } from '../services/api';
 import { useTheme } from '../context/ThemeContext';
 import { toast } from 'react-toastify';
 import Layout from '../components/layout/Layout';
 
-// AG Grid Styles
-import 'ag-grid-community/styles/ag-grid.css';
-import 'ag-grid-community/styles/ag-theme-quartz.css';
+// Custom Styles
 import './UserManagement.css';
 
 // Register AG Grid Modules for v35
@@ -209,7 +207,25 @@ const UserManagement = () => {
         minWidth: 100
     }), []);
 
-    const gridTheme = isDarkMode ? 'ag-theme-quartz-dark' : 'ag-theme-quartz';
+    const gridTheme = useMemo(() => {
+        const baseTheme = isDarkMode ? themeQuartz.withPart(colorSchemeDark) : themeQuartz;
+        return baseTheme.withParams({
+            gridSize: 8,
+            rowHeight: 60,
+            headerHeight: 52,
+            fontSize: '0.95rem',
+            borderRadius: 8,
+            wrapperBorderRadius: 15,
+            headerFontWeight: 700,
+            headerPlaceholderColor: isDarkMode ? '#adb5bd' : '#6c757d',
+            backgroundColor: isDarkMode ? '#1e1e1e' : '#ffffff',
+            headerBackgroundColor: isDarkMode ? '#252525' : '#f8f9fa',
+            headerForegroundColor: isDarkMode ? '#dee2e6' : '#495057',
+            dataColor: isDarkMode ? '#f8f9fa' : '#212529',
+            borderColor: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.08)',
+            rowBorderColor: isDarkMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)',
+        });
+    }, [isDarkMode]);
 
     return (
         <Layout>
@@ -247,7 +263,6 @@ const UserManagement = () => {
                                 </div>
                             </div>
                         ) : (
-                            <div className={gridTheme} style={{ height: '600px', width: '100%' }}>
                                 <AgGridReact
                                     rowData={users}
                                     columnDefs={columnDefs}
@@ -258,8 +273,9 @@ const UserManagement = () => {
                                     quickFilterText={quickFilterText}
                                     rowHeight={60}
                                     headerHeight={52}
+                                    theme={gridTheme}
+                                    style={{ height: '600px', width: '100%' }}
                                 />
-                            </div>
                         )}
                     </Card.Body>
                 </Card>

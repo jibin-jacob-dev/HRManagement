@@ -5,50 +5,22 @@
     background-color: transparent;
 }
 
-/* AG-Grid Deep Theming & Spacing */
-.ag-theme-quartz, 
-.ag-theme-quartz-dark {
-    /* Spacing & Layout */
-    --ag-grid-size: 8px;
-    --ag-list-item-height: 40px;
-    --ag-row-height: 60px; /* Increased row height for breathing room */
-    --ag-header-height: 52px; /* Taller header */
-    --ag-font-size: 0.95rem;
-    --ag-font-family: inherit;
-    
-    /* Borders & Radius */
-    --ag-border-radius: 8px;
-    --ag-card-radius: 8px;
-    --ag-row-border-style: solid;
-    --ag-row-border-color: rgba(0, 0, 0, 0.05);
-    
-    /* Transitions */
-    transition: all 0.3s ease !important;
+/* AG-Grid Cell & Header Polish (Layout Only) */
+.ag-header-cell-label {
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
 }
 
-/* Light Mode Specific Overrides (Inheriting from Bootstrap) */
-.ag-theme-quartz {
-    --ag-background-color: #ffffff;
-    --ag-header-background-color: #f8f9fa;
-    --ag-header-foreground-color: #495057;
-    --ag-data-color: #212529;
-    --ag-odd-row-background-color: #ffffff;
-    --ag-row-hover-color: rgba(13, 110, 253, 0.04);
-    --ag-selected-row-background-color: rgba(13, 110, 253, 0.08);
-    --ag-border-color: rgba(0, 0, 0, 0.08);
+.ag-cell {
+    display: flex;
+    align-items: center;
+    border-right: none !important;
 }
 
-/* Dark Mode Specific Overrides (Inheriting from Bootstrap Dark) */
-.ag-theme-quartz-dark {
-    --ag-background-color: #1e1e1e; /* Match Bootstrap card-dark bg */
-    --ag-header-background-color: #252525;
-    --ag-header-foreground-color: #dee2e6;
-    --ag-data-color: #f8f9fa;
-    --ag-odd-row-background-color: #1e1e1e;
-    --ag-row-hover-color: rgba(13, 110, 253, 0.1);
-    --ag-selected-row-background-color: rgba(13, 110, 253, 0.15);
-    --ag-border-color: rgba(255, 255, 255, 0.1);
-    --ag-row-border-color: rgba(255, 255, 255, 0.05);
+/* Custom Scrollbar for Grid */
+.ag-body-viewport {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(155, 155, 155, 0.5) transparent;
 }
 
 /* Cell & Header Polish */
