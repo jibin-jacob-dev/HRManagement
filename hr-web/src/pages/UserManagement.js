@@ -234,9 +234,6 @@ const UserManagement = () => {
                             <i className="fas fa-plus me-2"></i>
                             Add User
                         </Button>
-                        <Button variant="outline-secondary" className="shadow-sm" onClick={fetchData} disabled={loading}>
-                            <i className={`fas fa-sync-alt ${loading ? 'fa-spin' : ''}`}></i>
-                        </Button>
                     </div>
                 </div>
 
