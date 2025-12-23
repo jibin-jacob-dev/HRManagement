@@ -52,7 +52,7 @@ const Dashboard = () => {
                         <p className="lead">Welcome back, <strong>{user?.firstName}</strong>! You're logged into the HR Management portal.</p>
                         <div className="alert alert-info border-0 shadow-sm">
                             <i className="fas fa-info-circle me-2"></i>
-                            <strong>Status:</strong> Your account is active. You are logged in as an {user?.role || 'Employee'}.
+                            <strong>Status:</strong> Your account is active. You are logged in as an {user?.roles?.[0] || 'Employee'}.
                         </div>
                     </Card.Body>
                 </Card>
