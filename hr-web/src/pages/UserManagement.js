@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Container, Card, Button, Modal, Form, Badge } from 'react-bootstrap';
 import { AgGridReact } from 'ag-grid-react';
-import { ModuleRegistry, AllCommunityModule, themeQuartz, colorSchemeDark } from 'ag-grid-community';
+import { ModuleRegistry, AllCommunityModule } from 'ag-grid-community';
 import { userService } from '../services/api';
 import { useTheme } from '../context/ThemeContext';
+import { useGridSettings } from '../hooks/useGridSettings';
+import GridContainer from '../components/common/GridContainer';
 import { toast } from 'react-toastify';
 import Layout from '../components/layout/Layout';
 
@@ -14,7 +16,8 @@ import './UserManagement.css';
 ModuleRegistry.registerModules([AllCommunityModule]);
 
 const UserManagement = () => {
-    const { isDarkMode } = useTheme();
+    const { isDarkMode } = useGridSettings();
+    const { gridTheme, defaultColDef } = useGridSettings();
     const [users, setUsers] = useState([]);
     const [roles, setRoles] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -155,8 +158,7 @@ const UserManagement = () => {
                         {userRoles.map(role => (
                             <Badge 
                                 key={role} 
-                                bg="none" 
-                                className="fw-normal border text-dark bg-light-subtle"
+                                className={`fw-normal border ${isDarkMode ? 'text-light-50 border-secondary bg-transparent' : 'text-secondary border-secondary-subtle bg-transparent'}`}
                                 style={{ fontSize: '0.7rem' }}
                             >
                                 {role}
@@ -199,33 +201,9 @@ const UserManagement = () => {
                 </div>
             )
         }
-    ], []);
+    ], [isDarkMode]);
 
-    const defaultColDef = useMemo(() => ({
-        resizable: true,
-        flex: 1,
-        minWidth: 100
-    }), []);
-
-    const gridTheme = useMemo(() => {
-        const baseTheme = isDarkMode ? themeQuartz.withPart(colorSchemeDark) : themeQuartz;
-        return baseTheme.withParams({
-            gridSize: 8,
-            rowHeight: 60,
-            headerHeight: 52,
-            fontSize: '0.95rem',
-            borderRadius: 8,
-            wrapperBorderRadius: 15,
-            headerFontWeight: 700,
-            headerPlaceholderColor: isDarkMode ? '#adb5bd' : '#6c757d',
-            backgroundColor: isDarkMode ? '#1e1e1e' : '#ffffff',
-            headerBackgroundColor: isDarkMode ? '#252525' : '#f8f9fa',
-            headerForegroundColor: isDarkMode ? '#dee2e6' : '#495057',
-            dataColor: isDarkMode ? '#f8f9fa' : '#212529',
-            borderColor: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.08)',
-            rowBorderColor: isDarkMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)',
-        });
-    }, [isDarkMode]);
+    const defaultColDefMemo = useMemo(() => defaultColDef, [defaultColDef]);
 
     return (
         <Layout>
@@ -253,32 +231,30 @@ const UserManagement = () => {
                     </div>
                 </div>
 
-                <Card className="shadow-sm border-0 overflow-hidden" style={{ borderRadius: '15px' }}>
-                    <Card.Body className="p-0">
-                        {loading ? (
-                            <div className="d-flex justify-content-center align-items-center" style={{ height: '600px' }}>
-                                <div className="text-center">
-                                    <div className="spinner-border text-primary mb-3" role="status" style={{ width: '3rem', height: '3rem' }}></div>
-                                    <p className="text-muted fw-bold">Synchronizing User Directory...</p>
-                                </div>
+                <GridContainer height="600px">
+                    {loading ? (
+                        <div className="d-flex h-100 justify-content-center align-items-center">
+                            <div className="text-center">
+                                <div className="spinner-border text-primary mb-3" role="status" style={{ width: '3rem', height: '3rem' }}></div>
+                                <p className="text-muted fw-bold">Synchronizing User Directory...</p>
                             </div>
-                        ) : (
-                                <AgGridReact
-                                    rowData={users}
-                                    columnDefs={columnDefs}
-                                    defaultColDef={defaultColDef}
-                                    animateRows={true}
-                                    pagination={true}
-                                    paginationPageSize={10}
-                                    quickFilterText={quickFilterText}
-                                    rowHeight={60}
-                                    headerHeight={52}
-                                    theme={gridTheme}
-                                    style={{ height: '600px', width: '100%' }}
-                                />
-                        )}
-                    </Card.Body>
-                </Card>
+                        </div>
+                    ) : (
+                        <AgGridReact
+                            rowData={users}
+                            columnDefs={columnDefs}
+                            defaultColDef={defaultColDefMemo}
+                            animateRows={true}
+                            pagination={true}
+                            paginationPageSize={10}
+                            paginationPageSizeSelector={[10, 20, 50, 100]}
+                            quickFilterText={quickFilterText}
+                            rowHeight={60}
+                            headerHeight={52}
+                            theme={gridTheme}
+                        />
+                    )}
+                </GridContainer>
 
                 {/* Add/Edit Modal */}
                 <Modal show={showModal} onHide={() => setShowModal(false)} centered>
