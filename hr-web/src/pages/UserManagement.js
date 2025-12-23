@@ -240,13 +240,13 @@ const UserManagement = () => {
                     </div>
                 </div>
 
-                <Card className="shadow-sm border-0">
+                <Card className="shadow-sm border-0 overflow-hidden" style={{ borderRadius: '15px' }}>
                     <Card.Body className="p-0">
                         {loading ? (
                             <div className="d-flex justify-content-center align-items-center" style={{ height: '600px' }}>
                                 <div className="text-center">
-                                    <div className="spinner-border text-primary mb-3" role="status"></div>
-                                    <p className="text-muted fw-medium">Loading User Directory...</p>
+                                    <div className="spinner-border text-primary mb-3" role="status" style={{ width: '3rem', height: '3rem' }}></div>
+                                    <p className="text-muted fw-bold">Synchronizing User Directory...</p>
                                 </div>
                             </div>
                         ) : (
@@ -259,6 +259,8 @@ const UserManagement = () => {
                                     pagination={true}
                                     paginationPageSize={10}
                                     quickFilterText={quickFilterText}
+                                    rowHeight={60}
+                                    headerHeight={52}
                                 />
                             </div>
                         )}

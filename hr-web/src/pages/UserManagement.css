@@ -5,10 +5,64 @@
     background-color: transparent;
 }
 
-/* Transitions for Theme Switching */
+/* AG-Grid Deep Theming & Spacing */
 .ag-theme-quartz, 
 .ag-theme-quartz-dark {
+    /* Spacing & Layout */
+    --ag-grid-size: 8px;
+    --ag-list-item-height: 40px;
+    --ag-row-height: 60px; /* Increased row height for breathing room */
+    --ag-header-height: 52px; /* Taller header */
+    --ag-font-size: 0.95rem;
+    --ag-font-family: inherit;
+    
+    /* Borders & Radius */
+    --ag-border-radius: 8px;
+    --ag-card-radius: 8px;
+    --ag-row-border-style: solid;
+    --ag-row-border-color: rgba(0, 0, 0, 0.05);
+    
+    /* Transitions */
     transition: all 0.3s ease !important;
+}
+
+/* Light Mode Specific Overrides (Inheriting from Bootstrap) */
+.ag-theme-quartz {
+    --ag-background-color: #ffffff;
+    --ag-header-background-color: #f8f9fa;
+    --ag-header-foreground-color: #495057;
+    --ag-data-color: #212529;
+    --ag-odd-row-background-color: #ffffff;
+    --ag-row-hover-color: rgba(13, 110, 253, 0.04);
+    --ag-selected-row-background-color: rgba(13, 110, 253, 0.08);
+    --ag-border-color: rgba(0, 0, 0, 0.08);
+}
+
+/* Dark Mode Specific Overrides (Inheriting from Bootstrap Dark) */
+.ag-theme-quartz-dark {
+    --ag-background-color: #1e1e1e; /* Match Bootstrap card-dark bg */
+    --ag-header-background-color: #252525;
+    --ag-header-foreground-color: #dee2e6;
+    --ag-data-color: #f8f9fa;
+    --ag-odd-row-background-color: #1e1e1e;
+    --ag-row-hover-color: rgba(13, 110, 253, 0.1);
+    --ag-selected-row-background-color: rgba(13, 110, 253, 0.15);
+    --ag-border-color: rgba(255, 255, 255, 0.1);
+    --ag-row-border-color: rgba(255, 255, 255, 0.05);
+}
+
+/* Cell & Header Polish */
+.ag-header-cell-label {
+    font-weight: 700 !important;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.06em;
+}
+
+.ag-cell {
+    display: flex;
+    align-items: center;
+    border-right: none !important;
 }
 
 /* Custom Scrollbar for Grid */
@@ -23,70 +77,48 @@
 }
 
 .ag-body-viewport::-webkit-scrollbar-thumb {
-    background: rgba(155, 155, 155, 0.5);
+    background: rgba(155, 155, 155, 0.3);
     border-radius: 10px;
-}
-
-/* Grid Header Refinement */
-.ag-header {
-    font-weight: 600 !important;
-    text-transform: uppercase;
-    font-size: 0.75rem;
-    letter-spacing: 0.05em;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.05) !important;
-}
-
-[data-bs-theme='dark'] .ag-header {
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
 }
 
 /* Search Box Container */
 .search-box-wrapper {
     position: relative;
-    max-width: 300px;
+    max-width: 320px;
 }
 
 .search-icon {
     position: absolute;
-    left: 12px;
+    left: 14px;
     top: 50%;
     transform: translateY(-50%);
-    color: #adb5bd;
+    color: #6c757d;
     pointer-events: none;
+    z-index: 5;
 }
 
 .search-input {
-    padding-left: 35px !important;
-    border-radius: 8px !important;
-    border: 1px solid rgba(0, 0, 0, 0.1) !important;
-    font-size: 0.9rem !important;
-    transition: all 0.2s ease !important;
+    padding-left: 40px !important;
+    padding-right: 15px !important;
+    height: 42px !important;
+    border-radius: 10px !important;
+    font-size: 0.95rem !important;
+    box-shadow: none !important;
 }
 
-[data-bs-theme='dark'] .search-input {
-    background-color: #1e1e1e !important;
-    border-color: rgba(255, 255, 255, 0.1) !important;
-    color: #fff !important;
-}
-
-.search-input:focus {
-    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.15) !important;
-}
-
-/* Action Buttons */
+/* Action Buttons Overlay */
 .grid-action-btn {
-    transition: transform 0.2s ease;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    transition: all 0.2s ease;
 }
 
 .grid-action-btn:hover {
-    transform: scale(1.1);
-}
-
-/* Row Hover Effect */
-.ag-row-hover {
-    background-color: rgba(13, 110, 253, 0.03) !important;
-}
-
-[data-bs-theme='dark'] .ag-row-hover {
-    background-color: rgba(13, 110, 253, 0.08) !important;
+    background-color: rgba(13, 110, 253, 0.1);
+    transform: translateY(-1px);
 }
