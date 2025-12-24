@@ -57,6 +57,17 @@ const Sidebar = ({ isCollapsed, toggleSidebar }) => {
                     <Nav.Item>
                         <Nav.Link 
                             as={NavLink} 
+                            to="/role-management" 
+                            className={({ isActive }) => `${isActive ? 'active-link' : 'sidebar-link'}`}
+                        >
+                            <i className="fas fa-shield-alt"></i>
+                            <span className="sidebar-text">Role Management</span>
+                        </Nav.Link>
+                    </Nav.Item>
+
+                    <Nav.Item>
+                        <Nav.Link 
+                            as={NavLink} 
                             to="/employees" 
                             className={({ isActive }) => `${isActive ? 'active-link' : 'sidebar-link'}`}
                         >

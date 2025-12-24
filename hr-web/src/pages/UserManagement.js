@@ -207,7 +207,7 @@ const UserManagement = () => {
 
     return (
         <Layout>
-            <Container fluid className="user-management-container">
+            <Container fluid className="user-management-container page-animate">
                 <div className="d-flex justify-content-between align-items-end mb-4">
                     <div>
                         <h2 className="mb-1 fw-bold">User Management</h2>
