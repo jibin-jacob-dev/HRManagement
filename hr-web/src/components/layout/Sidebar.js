@@ -38,7 +38,7 @@ const Sidebar = ({ isCollapsed, toggleSidebar }) => {
                             to="/dashboard" 
                             className={({ isActive }) => `${isActive ? 'active-link' : 'sidebar-link'}`}
                         >
-                            <i className="fas fa-th-large"></i>
+                            <i className="fas fa-gauge-high"></i>
                             <span className="sidebar-text">Dashboard</span>
                         </Nav.Link>
                     </Nav.Item>
