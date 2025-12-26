@@ -438,6 +438,16 @@
     opacity: 1;
 }
 
+.timeline-empty-state {
+    background: #f8f9fa;
+    border-color: #dee2e6 !important;
+}
+
+[data-bs-theme='dark'] .timeline-empty-state {
+    background: rgba(255, 255, 255, 0.02);
+    border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
 /* Modal Premium Styling */
 .modal-content {
     border-radius: 20px !important;

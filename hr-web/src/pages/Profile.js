@@ -174,7 +174,13 @@ const Profile = () => {
     };
 
     const handleDeleteExperience = async (id) => {
-        if (!window.confirm('Are you sure you want to delete this experience?')) return;
+        const confirmed = await alertService.showConfirm(
+            'Delete Experience',
+            'Are you sure you want to delete this experience record? This action cannot be undone.',
+            'Yes, delete it!'
+        );
+        
+        if (!confirmed) return;
         
         try {
             await employeeProfileService.deleteExperience(id);
@@ -826,7 +832,7 @@ const Profile = () => {
                                             ))}
                                         </div>
                                     ) : (
-                                        <div className="text-center py-5 bg-light rounded-4 border border-dashed">
+                                        <div className="text-center py-5 timeline-empty-state rounded-4 border border-dashed">
                                             <i className="fas fa-briefcase fs-1 text-muted mb-3"></i>
                                             <p className="text-muted mb-0">No experience records found.</p>
                                             <Button 
