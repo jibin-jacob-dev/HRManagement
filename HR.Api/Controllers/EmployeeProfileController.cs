@@ -38,8 +38,46 @@ public class EmployeeProfileController : ControllerBase
                 .ThenInclude(e => e.Certifications)
             .FirstOrDefaultAsync(u => u.Id == userId);
 
-        if (user == null || user.Employee == null)
-            return NotFound("Employee profile not found");
+        if (user == null)
+            return Unauthorized();
+
+        // Auto-create or Auto-sync Employee Profile from Identity Account
+        if (user.Employee == null)
+        {
+            var employee = new Employee
+            {
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                Email = user.Email ?? "",
+                Phone = user.PhoneNumber,
+                EmploymentStatus = "Active",
+                HireDate = DateTime.UtcNow,
+                CreatedDate = DateTime.UtcNow
+            };
+
+            _context.Employees.Add(employee);
+            await _context.SaveChangesAsync();
+
+            user.EmployeeId = employee.EmployeeId;
+            await _context.SaveChangesAsync();
+            
+            // Re-fetch to get navigation properties if needed, though they'll be empty
+            user.Employee = employee;
+        }
+        else
+        {
+            // Sync basic info if it hasn't been set in employee profile yet
+            bool changed = false;
+            if (string.IsNullOrEmpty(user.Employee.FirstName)) { user.Employee.FirstName = user.FirstName; changed = true; }
+            if (string.IsNullOrEmpty(user.Employee.LastName)) { user.Employee.LastName = user.LastName; changed = true; }
+            if (string.IsNullOrEmpty(user.Employee.Email)) { user.Employee.Email = user.Email ?? ""; changed = true; }
+            if (string.IsNullOrEmpty(user.Employee.Phone)) { user.Employee.Phone = user.PhoneNumber; changed = true; }
+            
+            if (changed)
+            {
+                await _context.SaveChangesAsync();
+            }
+        }
 
         return Ok(user.Employee);
     }
@@ -56,8 +94,12 @@ public class EmployeeProfileController : ControllerBase
         var employee = user.Employee;
 
         // Update personal fields
-        employee.FirstName = updateData.FirstName;
-        employee.LastName = updateData.LastName;
+        if (User.IsInRole("Admin"))
+        {
+            employee.FirstName = updateData.FirstName;
+            employee.LastName = updateData.LastName;
+        }
+
         employee.Phone = updateData.Phone;
         employee.DateOfBirth = updateData.DateOfBirth;
         employee.Gender = updateData.Gender;

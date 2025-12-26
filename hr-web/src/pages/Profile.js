@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Container, Row, Col, Card, Nav, Tab, Form, Button, InputGroup, Badge, Spinner } from 'react-bootstrap';
 import { Formik } from 'formik';
 import * as Yup from 'yup';
-import { employeeProfileService } from '../services/api';
+import { employeeProfileService, authService } from '../services/api';
 import alertService from '../services/alertService';
 import ImageCropper from '../components/common/ImageCropper';
 import './Profile.css';
@@ -11,6 +11,7 @@ const Profile = () => {
     const [profile, setProfile] = useState(null);
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState('personal');
+    const isAdmin = authService.isAdmin();
     
     // Image Upload State
     const [showCropper, setShowCropper] = useState(false);
@@ -91,9 +92,9 @@ const Profile = () => {
     return (
         <Container fluid className="profile-container pb-5">
             {/* Header Section */}
-            <div className="profile-header mb-4">
+            <div className="card profile-header border-0 shadow-sm mb-4">
                 <div className="profile-banner"></div>
-                <div className="profile-info-wrapper px-4 pb-3">
+                <div className="profile-info-wrapper">
                     <div className="profile-picture-container">
                         <div className="profile-picture-rounded shadow">
                             <img 
@@ -112,7 +113,7 @@ const Profile = () => {
                             onChange={handleImageUpload} 
                         />
                     </div>
-                    <div className="profile-basic-info mt-3 mt-md-0 ms-md-4">
+                    <div className="profile-basic-info">
                         <h2 className="profile-name mb-1">{profile?.firstName} {profile?.lastName}</h2>
                         <p className="profile-title text-primary fw-bold mb-0">
                             {profile?.jobTitle || profile?.position?.title || 'Team Member'}
@@ -215,6 +216,8 @@ const Profile = () => {
                                                             onChange={handleChange}
                                                             onBlur={handleBlur}
                                                             isInvalid={touched.firstName && !!errors.firstName}
+                                                            readOnly={!isAdmin}
+                                                            title={!isAdmin ? "Only Admin can edit name" : ""}
                                                         />
                                                         <Form.Control.Feedback type="invalid">{errors.firstName}</Form.Control.Feedback>
                                                     </Form.Group>
@@ -228,6 +231,8 @@ const Profile = () => {
                                                             onChange={handleChange}
                                                             onBlur={handleBlur}
                                                             isInvalid={touched.lastName && !!errors.lastName}
+                                                            readOnly={!isAdmin}
+                                                            title={!isAdmin ? "Only Admin can edit name" : ""}
                                                         />
                                                         <Form.Control.Feedback type="invalid">{errors.lastName}</Form.Control.Feedback>
                                                     </Form.Group>
