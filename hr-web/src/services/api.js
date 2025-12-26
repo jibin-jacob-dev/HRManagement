@@ -131,4 +131,23 @@ export const menuService = {
     }
 };
 
+export const employeeProfileService = {
+    getProfile: async () => {
+        const response = await api.get('/employeeprofile');
+        return response.data;
+    },
+    updatePersonalInfo: async (data) => {
+        const response = await api.put('/employeeprofile/personal', data);
+        return response.data;
+    },
+    uploadPicture: async (formData) => {
+        const response = await api.post('/employeeprofile/picture', formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data'
+            }
+        });
+        return response.data;
+    }
+};
+
 export default api;

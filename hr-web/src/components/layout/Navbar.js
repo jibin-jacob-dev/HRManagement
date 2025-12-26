@@ -1,5 +1,5 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { Navbar, Nav, Container, Button, Form, InputGroup, Dropdown, Badge } from 'react-bootstrap';
 import { authService } from '../../services/api';
 import ThemeToggle from '../common/ThemeToggle';
@@ -73,7 +73,7 @@ const CustomNavbar = ({ toggleSidebar, isCollapsed }) => {
                                 <h6 className="mb-0 fw-bold">{user?.firstName} {user?.lastName}</h6>
                                 <small className="text-muted">{user?.email}</small>
                             </div>
-                            <Dropdown.Item href="#profile" className="rounded-3 py-2 small">
+                            <Dropdown.Item as={Link} to="/profile" className="rounded-3 py-2 small">
                                 <i className="fas fa-user-circle me-2 opacity-75"></i> Profile
                             </Dropdown.Item>
                             <Dropdown.Item href="#settings" className="rounded-3 py-2 small">

@@ -19,6 +19,9 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
     public DbSet<Payroll> Payrolls { get; set; }
     public DbSet<Menu> Menus { get; set; }
     public DbSet<RoleMenu> RoleMenus { get; set; }
+    public DbSet<EmployeeExperience> EmployeeExperiences { get; set; }
+    public DbSet<EmployeeEducation> EmployeeEducations { get; set; }
+    public DbSet<EmployeeCertification> EmployeeCertifications { get; set; }
     
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -80,5 +83,24 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
             .HasOne(rm => rm.Menu)
             .WithMany(m => m.RoleMenus)
             .HasForeignKey(rm => rm.MenuId);
+
+        // Employee Profile Extensions
+        builder.Entity<EmployeeExperience>()
+            .HasOne(ee => ee.Employee)
+            .WithMany(e => e.Experiences)
+            .HasForeignKey(ee => ee.EmployeeId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Entity<EmployeeEducation>()
+            .HasOne(ee => ee.Employee)
+            .WithMany(e => e.Educations)
+            .HasForeignKey(ee => ee.EmployeeId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Entity<EmployeeCertification>()
+            .HasOne(ec => ec.Employee)
+            .WithMany(e => e.Certifications)
+            .HasForeignKey(ec => ec.EmployeeId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

@@ -12,6 +12,7 @@ import RoleManagement from './pages/RoleManagement';
 import MenuManagement from './pages/MenuManagement';
 import { MenuProvider } from './context/MenuContext';
 import Layout from './components/layout/Layout';
+import Profile from './pages/Profile';
 
 // Simple component to protect routes
 const ProtectedRoute = ({ children }) => {
@@ -37,6 +38,7 @@ function App() {
                                             <Route path="/user-management" element={<UserManagement />} />
                                             <Route path="/role-management" element={<RoleManagement />} />
                                             <Route path="/menu-management" element={<MenuManagement />} />
+                                            <Route path="/profile" element={<Profile />} />
                                             <Route path="/" element={<Navigate to="/dashboard" />} />
                                         </Routes>
                                     </Layout>
