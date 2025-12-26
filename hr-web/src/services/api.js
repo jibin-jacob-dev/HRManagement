@@ -152,6 +152,18 @@ export const employeeProfileService = {
         const response = await api.put('/employeeprofile/professional', data);
         return response.data;
     },
+    addExperience: async (data) => {
+        const response = await api.post('/employeeprofile/experience', data);
+        return response.data;
+    },
+    deleteExperience: async (id) => {
+        const response = await api.delete(`/employeeprofile/remove-experience/${id}`);
+        return response.data;
+    },
+    updateExperience: async (id, data) => {
+        const response = await api.put(`/employeeprofile/experience/${id}`, data);
+        return response.data;
+    },
     getEmployeeList: async () => {
         const response = await api.get('/employees/list');
         return response.data;

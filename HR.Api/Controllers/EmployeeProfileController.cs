@@ -7,7 +7,7 @@ using System.Security.Claims;
 
 namespace HR.Api.Controllers;
 
-[Route("api/[controller]")]
+[Route("api/employeeprofile")]
 [ApiController]
 [Authorize]
 public class EmployeeProfileController : ControllerBase
@@ -125,6 +125,9 @@ public class EmployeeProfileController : ControllerBase
         var updatedEmployee = await _context.Employees
             .Include(e => e.Department)
             .Include(e => e.Position)
+            .Include(e => e.Experiences)
+            .Include(e => e.Educations)
+            .Include(e => e.Certifications)
             .FirstOrDefaultAsync(e => e.EmployeeId == employee.EmployeeId);
 
         return Ok(new { message = "Personal information updated successfully", employee = updatedEmployee });
@@ -200,8 +203,75 @@ public class EmployeeProfileController : ControllerBase
         var updatedEmployee = await _context.Employees
             .Include(e => e.Department)
             .Include(e => e.Position)
+            .Include(e => e.Experiences)
+            .Include(e => e.Educations)
+            .Include(e => e.Certifications)
             .FirstOrDefaultAsync(e => e.EmployeeId == employee.EmployeeId);
 
         return Ok(new { message = "Professional information updated successfully", employee = updatedEmployee });
+    }
+
+    [HttpPost("experience")]
+    public async Task<IActionResult> AddExperience([FromBody] EmployeeExperience experience)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var user = await _context.Users.Include(u => u.Employee).FirstOrDefaultAsync(u => u.Id == userId);
+
+        if (user == null || user.Employee == null)
+            return NotFound("Employee profile not found");
+
+        experience.EmployeeId = user.Employee.EmployeeId;
+        _context.EmployeeExperiences.Add(experience);
+        await _context.SaveChangesAsync();
+
+        return Ok(new { message = "Experience added successfully", experience });
+    }
+
+    [HttpDelete("remove-experience/{id}")]
+    public async Task<IActionResult> DeleteExperience(int id)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var user = await _context.Users.Include(u => u.Employee).FirstOrDefaultAsync(u => u.Id == userId);
+
+        if (user == null || user.Employee == null)
+            return NotFound("Employee profile not found");
+
+        var experience = await _context.EmployeeExperiences
+            .FirstOrDefaultAsync(e => e.Id == id && e.EmployeeId == user.Employee.EmployeeId);
+
+        if (experience == null)
+            return NotFound("Experience not found");
+
+        _context.EmployeeExperiences.Remove(experience);
+        await _context.SaveChangesAsync();
+
+        return Ok(new { message = "Experience removed successfully" });
+    }
+
+    [HttpPut("experience/{id}")]
+    public async Task<IActionResult> UpdateExperience(int id, [FromBody] EmployeeExperience updateData)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var user = await _context.Users.Include(u => u.Employee).FirstOrDefaultAsync(u => u.Id == userId);
+
+        if (user == null || user.Employee == null)
+            return NotFound("Employee profile not found");
+
+        var experience = await _context.EmployeeExperiences
+            .FirstOrDefaultAsync(e => e.Id == id && e.EmployeeId == user.Employee.EmployeeId);
+
+        if (experience == null)
+            return NotFound("Experience not found");
+
+        experience.CompanyName = updateData.CompanyName;
+        experience.Designation = updateData.Designation;
+        experience.StartDate = updateData.StartDate;
+        experience.EndDate = updateData.EndDate;
+        experience.IsCurrent = updateData.IsCurrent;
+        experience.Description = updateData.Description;
+
+        await _context.SaveChangesAsync();
+
+        return Ok(new { message = "Experience updated successfully", experience });
     }
 }

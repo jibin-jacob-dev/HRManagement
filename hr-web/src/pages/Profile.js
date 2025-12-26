@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Row, Col, Card, Nav, Tab, Form, Button, InputGroup, Badge, Spinner } from 'react-bootstrap';
+import { Container, Row, Col, Card, Nav, Tab, Form, Button, InputGroup, Badge, Spinner, Modal } from 'react-bootstrap';
 import { Formik } from 'formik';
 import * as Yup from 'yup';
 import { employeeProfileService, authService, departmentService, positionService, levelService } from '../services/api';
@@ -17,6 +17,8 @@ const Profile = () => {
     const [loading, setLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
     const [activeTab, setActiveTab] = useState('personal');
+    const [showExperienceModal, setShowExperienceModal] = useState(false);
+    const [editingExperience, setEditingExperience] = useState(null);
     const isAdmin = authService.isAdmin();
     
     // Image Upload State
@@ -56,6 +58,7 @@ const Profile = () => {
         try {
             setLoading(true);
             const data = await employeeProfileService.getProfile();
+            console.log('Current experiences:', data.experiences);
             setProfile(data);
         } catch (error) {
             console.error('Error fetching profile:', error);
@@ -137,12 +140,58 @@ const Profile = () => {
             const response = await employeeProfileService.updateProfessionalInfo(updateData);
             setProfile(response.employee);
             alertService.showToast('Professional information updated successfully');
-        } catch (error) {
-            console.error('Update failed:', error);
-            alertService.showToast('Failed to update professional information', 'error');
         } finally {
             setSubmitting(false);
             setIsSaving(false);
+        }
+    };
+
+    const handleSaveExperience = async (values, { setSubmitting, resetForm }) => {
+        try {
+            if (editingExperience) {
+                await employeeProfileService.updateExperience(editingExperience.id, values);
+                alertService.showToast('Experience updated successfully');
+            } else {
+                await employeeProfileService.addExperience(values);
+                alertService.showToast('Experience added successfully');
+            }
+            const updatedProfile = await employeeProfileService.getProfile();
+            setProfile(updatedProfile);
+            setShowExperienceModal(false);
+            setEditingExperience(null);
+            resetForm();
+        } catch (error) {
+            console.error('Failed to save experience:', error);
+            alertService.showToast(`Failed to ${editingExperience ? 'update' : 'add'} experience`, 'error');
+        } finally {
+            setSubmitting(false);
+        }
+    };
+
+    const handleEditExperience = (exp) => {
+        setEditingExperience(exp);
+        setShowExperienceModal(true);
+    };
+
+    const handleDeleteExperience = async (id) => {
+        if (!window.confirm('Are you sure you want to delete this experience?')) return;
+        
+        try {
+            await employeeProfileService.deleteExperience(id);
+            alertService.showToast('Experience deleted successfully');
+            
+            // Optimistic update: filter out the deleted experience item from local state
+            setProfile(prev => ({
+                ...prev,
+                experiences: prev.experiences.filter(exp => exp.id !== id)
+            }));
+
+            // Then re-fetch to be safe
+            const updatedProfile = await employeeProfileService.getProfile();
+            setProfile(updatedProfile);
+        } catch (error) {
+            console.error('Failed to delete experience:', error.response?.data || error.message);
+            alertService.showToast('Failed to delete experience', 'error');
         }
     };
 
@@ -722,11 +771,83 @@ const Profile = () => {
                                 </Formik>
                             )}
 
-                            {activeTab !== 'personal' && activeTab !== 'professional' && (
+                            {activeTab === 'experience' && (
+                                <div className="p-2">
+                                    <div className="d-flex justify-content-between align-items-center mb-4">
+                                        <h5 className="fw-bold mb-0">Professional Journey</h5>
+                                        <Button 
+                                            variant="outline-primary" 
+                                            size="sm" 
+                                            className="rounded-pill px-3"
+                                            onClick={() => {
+                                                setEditingExperience(null);
+                                                setShowExperienceModal(true);
+                                            }}
+                                        >
+                                            <i className="fas fa-plus me-2"></i> Add Experience
+                                        </Button>
+                                    </div>
+
+                                    {profile?.experiences && profile.experiences.length > 0 ? (
+                                        <div className="experience-timeline">
+                                            {[...profile.experiences]
+                                                .sort((a, b) => new Date(b.startDate) - new Date(a.startDate))
+                                                .map((exp, index) => (
+                                                <div key={exp.id || index} className="timeline-item">
+                                                    <div className="timeline-dot"></div>
+                                                    <div className="timeline-content">
+                                                        <div className="d-flex justify-content-between">
+                                                            <span className="timeline-date">
+                                                                {new Date(exp.startDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })} - 
+                                                                {exp.isCurrent ? ' Present' : ` ${new Date(exp.endDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}`}
+                                                            </span>
+                                                            <div className="d-flex gap-2">
+                                                                <Button 
+                                                                    variant="link" 
+                                                                    className="text-warning p-0 btn-edit-timeline"
+                                                                    onClick={() => handleEditExperience(exp)}
+                                                                >
+                                                                    <i className="fas fa-pencil-alt"></i>
+                                                                </Button>
+                                                                <Button 
+                                                                    variant="link" 
+                                                                    className="text-danger p-0 btn-delete-timeline"
+                                                                    onClick={() => handleDeleteExperience(exp.id)}
+                                                                >
+                                                                    <i className="fas fa-trash-alt"></i>
+                                                                </Button>
+                                                            </div>
+                                                        </div>
+                                                        <h6 className="timeline-title">{exp.designation}</h6>
+                                                        <span className="timeline-company">{exp.companyName}</span>
+                                                        <p className="timeline-description mt-2">{exp.description}</p>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <div className="text-center py-5 bg-light rounded-4 border border-dashed">
+                                            <i className="fas fa-briefcase fs-1 text-muted mb-3"></i>
+                                            <p className="text-muted mb-0">No experience records found.</p>
+                                            <Button 
+                                                variant="link" 
+                                                className="mt-2"
+                                                onClick={() => {
+                                                    setEditingExperience(null);
+                                                    setShowExperienceModal(true);
+                                                }}
+                                            >
+                                                Add your first experience
+                                            </Button>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
+                            {(activeTab === 'study' || activeTab === 'certification') && (
                                 <div className="text-center py-5">
-                                    <i className="fas fa-tools fa-3x text-secondary-emphasis opacity-25 mb-4"></i>
-                                    <h5 className="text-muted">Under Development</h5>
-                                    <p className="text-secondary small">This section will be implemented in the next step.</p>
+                                    <i className={`fas ${activeTab === 'study' ? 'fa-graduation-cap' : 'fa-certificate'} fs-1 text-muted mb-3`}></i>
+                                    <p className="text-muted">{activeTab === 'study' ? 'Education' : 'Certifications'} history coming soon...</p>
                                 </div>
                             )}
                         </Card.Body>
@@ -741,6 +862,130 @@ const Profile = () => {
                 onHide={() => setShowCropper(false)} 
                 onCropComplete={handleCropComplete} 
             />
+
+            {/* Experience Modal */}
+            <Modal show={showExperienceModal} onHide={() => {
+                setShowExperienceModal(false);
+                setEditingExperience(null);
+            }} centered size="lg">
+                <Modal.Header closeButton className="px-4 pt-4">
+                    <Modal.Title className="fw-bold">{editingExperience ? 'Edit Experience' : 'Add Experience'}</Modal.Title>
+                </Modal.Header>
+                <Formik
+                    initialValues={{
+                        companyName: editingExperience?.companyName || '',
+                        designation: editingExperience?.designation || '',
+                        startDate: editingExperience?.startDate ? new Date(editingExperience.startDate) : new Date(),
+                        endDate: editingExperience?.endDate ? new Date(editingExperience.endDate) : new Date(),
+                        isCurrent: editingExperience?.isCurrent || false,
+                        description: editingExperience?.description || ''
+                    }}
+                    validationSchema={Yup.object({
+                        companyName: Yup.string().required('Required'),
+                        designation: Yup.string().required('Required'),
+                        startDate: Yup.date().required('Required'),
+                        description: Yup.string().max(1000, 'Too long')
+                    })}
+                    onSubmit={handleSaveExperience}
+                    enableReinitialize
+                >
+                    {({ values, errors, touched, handleChange, handleBlur, handleSubmit, isSubmitting, setFieldValue }) => (
+                        <Form onSubmit={handleSubmit}>
+                            <Modal.Body className="p-4">
+                                <Row className="g-3">
+                                    <Col md={6}>
+                                        <Form.Group className="mb-3">
+                                            <Form.Label className="small fw-bold">Company Name</Form.Label>
+                                            <Form.Control 
+                                                name="companyName"
+                                                value={values.companyName}
+                                                onChange={handleChange}
+                                                isInvalid={touched.companyName && errors.companyName}
+                                                placeholder="e.g. Google"
+                                            />
+                                        </Form.Group>
+                                    </Col>
+                                    <Col md={6}>
+                                        <Form.Group className="mb-3">
+                                            <Form.Label className="small fw-bold">Position / Title</Form.Label>
+                                            <Form.Control 
+                                                name="designation"
+                                                value={values.designation}
+                                                onChange={handleChange}
+                                                isInvalid={touched.designation && errors.designation}
+                                                placeholder="e.g. Senior Developer"
+                                            />
+                                        </Form.Group>
+                                    </Col>
+                                    <Col md={6}>
+                                        <Form.Group className="mb-3">
+                                            <Form.Label className="small fw-bold">From Date</Form.Label>
+                                            <div className="datepicker-wrapper">
+                                                <DatePicker
+                                                    selected={values.startDate}
+                                                    onChange={(date) => setFieldValue('startDate', date)}
+                                                    className="form-control"
+                                                    dateFormat="MM/yyyy"
+                                                    showMonthYearPicker
+                                                />
+                                                <i className="far fa-calendar-alt text-muted"></i>
+                                            </div>
+                                        </Form.Group>
+                                    </Col>
+                                    <Col md={6}>
+                                        <Form.Group className="mb-3">
+                                            <Form.Label className="small fw-bold">To Date</Form.Label>
+                                            <div className="datepicker-wrapper">
+                                                <DatePicker
+                                                    selected={values.endDate}
+                                                    onChange={(date) => setFieldValue('endDate', date)}
+                                                    className="form-control"
+                                                    dateFormat="MM/yyyy"
+                                                    showMonthYearPicker
+                                                    disabled={values.isCurrent}
+                                                />
+                                                <i className="far fa-calendar-alt text-muted"></i>
+                                            </div>
+                                            <Form.Check 
+                                                type="checkbox"
+                                                label="I am currently working here"
+                                                name="isCurrent"
+                                                checked={values.isCurrent}
+                                                onChange={handleChange}
+                                                className="mt-2 small"
+                                            />
+                                        </Form.Group>
+                                    </Col>
+                                    <Col md={12}>
+                                        <Form.Group>
+                                            <Form.Label className="small fw-bold">Description (Role & Achievements)</Form.Label>
+                                            <Form.Control 
+                                                as="textarea"
+                                                rows={4}
+                                                name="description"
+                                                value={values.description}
+                                                onChange={handleChange}
+                                                placeholder="Describe your responsibilities and key achievements..."
+                                            />
+                                        </Form.Group>
+                                    </Col>
+                                </Row>
+                            </Modal.Body>
+                            <Modal.Footer className="border-0 px-4 pb-4">
+                                <Button variant="light" onClick={() => {
+                                    setShowExperienceModal(false);
+                                    setEditingExperience(null);
+                                }} className="rounded-pill px-4">
+                                    Cancel
+                                </Button>
+                                <Button variant="primary" type="submit" disabled={isSubmitting} className="rounded-pill px-4">
+                                    {isSubmitting ? 'Saving...' : (editingExperience ? 'Update Experience' : 'Save Experience')}
+                                </Button>
+                            </Modal.Footer>
+                        </Form>
+                    )}
+                </Formik>
+            </Modal>
         </Container>
     );
 };
