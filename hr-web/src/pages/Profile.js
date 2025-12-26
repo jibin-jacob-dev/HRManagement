@@ -2,16 +2,20 @@ import React, { useState, useEffect } from 'react';
 import { Container, Row, Col, Card, Nav, Tab, Form, Button, InputGroup, Badge, Spinner } from 'react-bootstrap';
 import { Formik } from 'formik';
 import * as Yup from 'yup';
-import { employeeProfileService, authService } from '../services/api';
+import { employeeProfileService, authService, departmentService, positionService, levelService } from '../services/api';
 import alertService from '../services/alertService';
 import ImageCropper from '../components/common/ImageCropper';
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+import Select, { components } from 'react-select';
+import { useTheme } from '../context/ThemeContext';
 import './Profile.css';
 
 const Profile = () => {
+    const { isDarkMode } = useTheme();
     const [profile, setProfile] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [isSaving, setIsSaving] = useState(false);
     const [activeTab, setActiveTab] = useState('personal');
     const isAdmin = authService.isAdmin();
     
@@ -19,10 +23,34 @@ const Profile = () => {
     const [showCropper, setShowCropper] = useState(false);
     const [selectedImage, setSelectedImage] = useState(null);
     const [tempImage, setTempImage] = useState(null);
+    
+    // Professional Data
+    const [departments, setDepartments] = useState([]);
+    const [positions, setPositions] = useState([]);
+    const [levels, setLevels] = useState([]);
+    const [employees, setEmployees] = useState([]);
 
     useEffect(() => {
         fetchProfile();
+        fetchDropdownData();
     }, []);
+
+    const fetchDropdownData = async () => {
+        try {
+            const [depts, posts, levs, emps] = await Promise.all([
+                departmentService.getDepartments(),
+                positionService.getPositions(),
+                levelService.getLevels(),
+                employeeProfileService.getEmployeeList()
+            ]);
+            setDepartments(depts);
+            setPositions(posts);
+            setLevels(levs);
+            setEmployees(emps);
+        } catch (error) {
+            console.error('Error fetching dropdown data:', error);
+        }
+    };
 
     const fetchProfile = async () => {
         try {
@@ -72,6 +100,7 @@ const Profile = () => {
 
     const handleUpdatePersonal = async (values, { setSubmitting }) => {
         try {
+            setIsSaving(true);
             // Prepare payload by merging with existing profile to include required fields (Email, HireDate etc.)
             const updateData = {
                 ...profile,
@@ -91,7 +120,155 @@ const Profile = () => {
             alertService.showToast(message, 'error');
         } finally {
             setSubmitting(false);
+            setIsSaving(false);
         }
+    };
+
+    const handleUpdateProfessional = async (values, { setSubmitting }) => {
+        try {
+            setIsSaving(true);
+            const updateData = {
+                ...profile,
+                ...values,
+                hireDate: values.hireDate || profile.hireDate,
+                levelId: values.levelId || profile.levelId
+            };
+            
+            const response = await employeeProfileService.updateProfessionalInfo(updateData);
+            setProfile(response.employee);
+            alertService.showToast('Professional information updated successfully');
+        } catch (error) {
+            console.error('Update failed:', error);
+            alertService.showToast('Failed to update professional information', 'error');
+        } finally {
+            setSubmitting(false);
+            setIsSaving(false);
+        }
+    };
+
+    // Custom option component for employee dropdown with avatar
+    const EmployeeOption = ({ data, ...props }) => {
+        const { innerRef, innerProps } = props;
+        return (
+            <div ref={innerRef} {...innerProps} style={{
+                display: 'flex',
+                alignItems: 'center',
+                padding: '8px 12px',
+                cursor: 'pointer',
+                backgroundColor: props.isFocused ? (isDarkMode ? '#343a40' : '#f8f9fa') : 'transparent',
+                color: isDarkMode ? '#dee2e6' : '#333'
+            }}>
+                <img 
+                    src={data.profilePicture ? `http://localhost:5227${data.profilePicture}` : '/default-avatar.png'} 
+                    alt={data.label}
+                    onError={(e) => { e.target.src = '/default-avatar.png'; }}
+                    style={{
+                        width: '32px',
+                        height: '32px',
+                        borderRadius: '50%',
+                        marginRight: '12px',
+                        objectFit: 'cover',
+                        flexShrink: 0
+                    }}
+                />
+                <span>{data.label}</span>
+            </div>
+        );
+    };
+
+    const EmployeeSingleValue = (props) => (
+        <components.SingleValue {...props}>
+            <div style={{ 
+                display: 'flex', 
+                alignItems: 'center',
+                height: '100%'
+            }}>
+                <img 
+                    src={props.data.profilePicture ? `http://localhost:5227${props.data.profilePicture}` : '/default-avatar.png'} 
+                    alt={props.data.label}
+                    onError={(e) => { e.target.src = '/default-avatar.png'; }}
+                    style={{
+                        width: '24px',
+                        height: '24px',
+                        borderRadius: '50%',
+                        marginRight: '10px',
+                        objectFit: 'cover',
+                        flexShrink: 0
+                    }}
+                />
+                <span style={{ 
+                    color: isDarkMode ? '#fff' : '#333',
+                    lineHeight: '1'
+                }}>{props.data.label}</span>
+            </div>
+        </components.SingleValue>
+    );
+
+    // Custom Styles for React Select
+    const customSelectStyles = {
+        control: (provided, state) => ({
+            ...provided,
+            backgroundColor: isDarkMode ? '#212529' : '#fff',
+            borderColor: state.isFocused ? 'var(--bs-primary)' : (isDarkMode ? '#495057' : '#dee2e6'),
+            color: isDarkMode ? '#fff' : '#000',
+            borderRadius: '8px',
+            padding: '2px',
+            boxShadow: state.isFocused ? '0 0 0 0.25rem rgba(13, 110, 253, 0.25)' : 'none',
+            '&:hover': {
+                borderColor: state.isFocused ? 'var(--bs-primary)' : (isDarkMode ? '#6c757d' : '#bdc3c7')
+            }
+        }),
+        menu: (provided) => ({
+            ...provided,
+            backgroundColor: isDarkMode ? '#2b3035' : '#fff',
+            border: isDarkMode ? '1px solid #495057' : '1px solid #dee2e6',
+            zIndex: 1000,
+            borderRadius: '8px',
+            overflow: 'hidden',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.3)'
+        }),
+        option: (provided, state) => ({
+            ...provided,
+            backgroundColor: state.isSelected 
+                ? 'var(--bs-primary)' 
+                : (state.isFocused ? (isDarkMode ? '#343a40' : '#f8f9fa') : 'transparent'),
+            color: state.isSelected ? '#fff' : (isDarkMode ? '#dee2e6' : '#333'),
+            cursor: 'pointer',
+            padding: '10px 15px',
+            '&:active': {
+                backgroundColor: 'var(--bs-primary)'
+            }
+        }),
+        singleValue: (provided) => ({
+            ...provided,
+            color: isDarkMode ? '#fff' : '#333',
+            margin: 0,
+            padding: 0,
+            display: 'flex',
+            alignItems: 'center',
+            position: 'static',
+            transform: 'none',
+            maxWidth: '100%'
+        }),
+        valueContainer: (provided) => ({
+            ...provided,
+            padding: '2px 12px',
+            display: 'flex',
+            alignItems: 'center',
+            height: '100%',
+            minHeight: '38px'
+        }),
+        input: (provided) => ({
+            ...provided,
+            color: isDarkMode ? '#fff' : '#333',
+            margin: 0,
+            padding: 0
+        }),
+        placeholder: (provided) => ({
+            ...provided,
+            color: isDarkMode ? '#adb5bd' : '#6c757d',
+            margin: 0
+        })
     };
 
     if (loading) {
@@ -129,11 +306,11 @@ const Profile = () => {
                     <div className="profile-basic-info">
                         <h2 className="profile-name mb-1">{profile?.firstName} {profile?.lastName}</h2>
                         <p className="profile-title text-primary fw-bold mb-0">
-                            {profile?.jobTitle || profile?.position?.title || 'Team Member'}
+                            {profile?.jobTitle || profile?.position?.positionTitle || 'Team Member'}
                         </p>
                         <div className="d-flex gap-2 mt-2">
                             <Badge bg="soft-primary" className="text-primary px-3 py-2 rounded-pill border border-primary-subtle bg-primary bg-opacity-10">
-                                {profile?.department?.name || 'Department'}
+                                {profile?.department?.departmentName || 'Department'}
                             </Badge>
                             <Badge bg="soft-success" className="text-success px-3 py-2 rounded-pill border border-success-subtle bg-success bg-opacity-10">
                                 {profile?.employmentStatus || 'Active'}
@@ -186,13 +363,27 @@ const Profile = () => {
                 <Col lg={9}>
                     <Card className="border-0 shadow-sm content-fade-in">
                         <Card.Header className="bg-transparent border-0 pt-4 px-4">
-                            <h4 className="fw-bold mb-0">
-                                {activeTab === 'personal' && 'Personal Information'}
-                                {activeTab === 'professional' && 'Professional Information'}
-                                {activeTab === 'experience' && 'Experience History'}
-                                {activeTab === 'study' && 'Education History'}
-                                {activeTab === 'certification' && 'Certifications'}
-                            </h4>
+                            <div className="d-flex justify-content-between align-items-center mb-0">
+                                <h4 className="fw-bold mb-0">
+                                    {activeTab === 'personal' && 'Personal Information'}
+                                    {activeTab === 'professional' && 'Professional Information'}
+                                    {activeTab === 'experience' && 'Experience History'}
+                                    {activeTab === 'study' && 'Education History'}
+                                    {activeTab === 'certification' && 'Certifications'}
+                                </h4>
+                                {(activeTab === 'personal' || activeTab === 'professional') && (
+                                    <button 
+                                        type="submit" 
+                                        form={activeTab === 'personal' ? "personalForm" : "professionalForm"}
+                                        className="btn-premium-save shadow-sm"
+                                        title="Save Changes"
+                                        disabled={isSaving}
+                                    >
+                                        <i className={`fas ${isSaving ? 'fa-spinner fa-spin' : 'fa-check'}`}></i>
+                                        <span>{isSaving ? 'Saving...' : 'Save Changes'}</span>
+                                    </button>
+                                )}
+                            </div>
                         </Card.Header>
                         <Card.Body className="p-4">
                             {activeTab === 'personal' && (
@@ -218,7 +409,7 @@ const Profile = () => {
                                     enableReinitialize
                                 >
                                     {({ values, errors, touched, handleChange, handleBlur, handleSubmit, isSubmitting, setFieldValue }) => (
-                                        <Form onSubmit={handleSubmit}>
+                                        <Form onSubmit={handleSubmit} id="personalForm">
                                             <Row className="g-4">
                                                 <Col md={6}>
                                                     <Form.Group>
@@ -370,20 +561,168 @@ const Profile = () => {
                                                         <Form.Control name="zipCode" value={values.zipCode} onChange={handleChange} />
                                                     </Form.Group>
                                                 </Col>
-                                                <Col md={12}>
-                                                    <div className="d-flex justify-content-end mt-4">
-                                                        <Button variant="primary" type="submit" disabled={isSubmitting} className="px-5 shadow-sm">
-                                                            {isSubmitting ? 'Saving...' : 'Save Changes'}
-                                                        </Button>
-                                                    </div>
-                                                </Col>
+                                                {/* Button removed from bottom */}
                                             </Row>
                                         </Form>
                                     )}
                                 </Formik>
                             )}
 
-                            {activeTab !== 'personal' && (
+                            {activeTab === 'professional' && (
+                                <Formik
+                                    initialValues={{
+                                        jobTitle: profile?.jobTitle || '',
+                                        hireDate: profile?.hireDate ? profile.hireDate.split('T')[0] : '',
+                                        salary: profile?.salary || 0,
+                                        departmentId: profile?.departmentId || '',
+                                        positionId: profile?.positionId || '',
+                                        levelId: profile?.levelId || '',
+                                        reportsToId: profile?.reportsToId || '',
+                                        employmentStatus: profile?.employmentStatus || 'Active'
+                                    }}
+                                    onSubmit={handleUpdateProfessional}
+                                    enableReinitialize
+                                >
+                                    {({ values, handleChange, handleBlur, handleSubmit, isSubmitting, setFieldValue }) => (
+                                        <Form onSubmit={handleSubmit} id="professionalForm">
+                                            <Row className="g-4">
+                                                <Col md={12}>
+                                                    <Form.Group>
+                                                        <Form.Label className="text-muted small fw-bold">Master Position / Job Title</Form.Label>
+                                                        <Select
+                                                            options={positions.map(pos => ({ value: pos.positionId, label: pos.positionTitle }))}
+                                                            value={positions.map(pos => ({ value: pos.positionId, label: pos.positionTitle })).find(opt => opt.value === values.positionId)}
+                                                            onChange={(opt) => {
+                                                                setFieldValue('positionId', opt ? opt.value : '');
+                                                                setFieldValue('jobTitle', opt ? opt.label : '');
+                                                            }}
+                                                            styles={customSelectStyles}
+                                                            isDisabled={!isAdmin}
+                                                            placeholder="Search and select position..."
+                                                            isClearable
+                                                        />
+                                                    </Form.Group>
+                                                </Col>
+
+                                                <Col md={6}>
+                                                    <Form.Group>
+                                                        <Form.Label className="text-muted small fw-bold">Department</Form.Label>
+                                                        <Select
+                                                            options={departments.map(dept => ({ value: dept.departmentId, label: dept.departmentName }))}
+                                                            value={departments.map(dept => ({ value: dept.departmentId, label: dept.departmentName })).find(opt => opt.value === values.departmentId)}
+                                                            onChange={(opt) => setFieldValue('departmentId', opt ? opt.value : '')}
+                                                            styles={customSelectStyles}
+                                                            isDisabled={!isAdmin}
+                                                            placeholder="Select Department"
+                                                            isClearable
+                                                        />
+                                                    </Form.Group>
+                                                </Col>
+                                                <Col md={6}>
+                                                    <Form.Group>
+                                                        <Form.Label className="text-muted small fw-bold">Employee Level / Grade</Form.Label>
+                                                        <Select
+                                                            options={levels.map(lvl => ({ value: lvl.levelId, label: lvl.levelName }))}
+                                                            value={levels.map(lvl => ({ value: lvl.levelId, label: lvl.levelName })).find(opt => opt.value === values.levelId)}
+                                                            onChange={(opt) => setFieldValue('levelId', opt ? opt.value : '')}
+                                                            styles={customSelectStyles}
+                                                            isDisabled={!isAdmin}
+                                                            placeholder="Select Level"
+                                                            isClearable
+                                                        />
+                                                    </Form.Group>
+                                                </Col>
+
+                                                <Col md={6}>
+                                                    <Form.Group>
+                                                        <Form.Label className="text-muted small fw-bold">Current Salary</Form.Label>
+                                                        <InputGroup>
+                                                            <InputGroup.Text className={isDarkMode ? "bg-dark border-secondary text-light" : "bg-light"}>$</InputGroup.Text>
+                                                            <Form.Control
+                                                                type="number"
+                                                                name="salary"
+                                                                value={values.salary}
+                                                                onChange={handleChange}
+                                                                readOnly={!isAdmin}
+                                                                className="border-start-0"
+                                                            />
+                                                        </InputGroup>
+                                                    </Form.Group>
+                                                </Col>
+                                                <Col md={6}>
+                                                    <Form.Group>
+                                                        <Form.Label className="text-muted small fw-bold">Employment Status</Form.Label>
+                                                        <Form.Select 
+                                                            name="employmentStatus" 
+                                                            value={values.employmentStatus} 
+                                                            onChange={handleChange}
+                                                            disabled={!isAdmin}
+                                                        >
+                                                            <option value="Active">Active</option>
+                                                            <option value="On Leave">On Leave</option>
+                                                            <option value="Suspended">Suspended</option>
+                                                            <option value="Terminated">Terminated</option>
+                                                        </Form.Select>
+                                                    </Form.Group>
+                                                </Col>
+
+                                                <Col md={6}>
+                                                    <Form.Group>
+                                                        <Form.Label className="text-muted small fw-bold">Join Date (Hire Date)</Form.Label>
+                                                        <div className="datepicker-wrapper position-relative">
+                                                            <DatePicker
+                                                                selected={values.hireDate ? new Date(values.hireDate) : null}
+                                                                onChange={(date) => {
+                                                                    const dateStr = date ? date.toISOString().split('T')[0] : '';
+                                                                    setFieldValue('hireDate', dateStr);
+                                                                }}
+                                                                dateFormat="MMMM d, yyyy"
+                                                                className="form-control"
+                                                                placeholderText="Select Date"
+                                                                showMonthDropdown
+                                                                showYearDropdown
+                                                                dropdownMode="select"
+                                                                scrollableYearDropdown={false}
+                                                                readOnly={!isAdmin}
+                                                                disabled={!isAdmin}
+                                                            />
+                                                            <i className="fas fa-calendar-alt opacity-50 text-secondary"></i>
+                                                        </div>
+                                                    </Form.Group>
+                                                </Col>
+
+                                                <Col md={6}>
+                                                    <Form.Group>
+                                                        <Form.Label className="text-muted small fw-bold">Reports To (Manager)</Form.Label>
+                                                        <Select
+                                                            options={employees.map(emp => ({ 
+                                                                value: emp.employeeId, 
+                                                                label: `${emp.firstName} ${emp.lastName}`,
+                                                                profilePicture: emp.profilePicture
+                                                            }))}
+                                                            value={employees.map(emp => ({ 
+                                                                value: emp.employeeId, 
+                                                                label: `${emp.firstName} ${emp.lastName}`,
+                                                                profilePicture: emp.profilePicture
+                                                            })).find(opt => opt.value === values.reportsToId)}
+                                                            onChange={(opt) => setFieldValue('reportsToId', opt ? opt.value : '')}
+                                                            styles={customSelectStyles}
+                                                            components={{ Option: EmployeeOption, SingleValue: EmployeeSingleValue }}
+                                                            isDisabled={!isAdmin}
+                                                            placeholder="Select Manager"
+                                                            isClearable
+                                                        />
+                                                    </Form.Group>
+                                                </Col>
+
+                                                {/* Button removed from bottom */}
+                                            </Row>
+                                        </Form>
+                                    )}
+                                </Formik>
+                            )}
+
+                            {activeTab !== 'personal' && activeTab !== 'professional' && (
                                 <div className="text-center py-5">
                                     <i className="fas fa-tools fa-3x text-secondary-emphasis opacity-25 mb-4"></i>
                                     <h5 className="text-muted">Under Development</h5>

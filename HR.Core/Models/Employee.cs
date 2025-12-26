@@ -54,12 +54,17 @@ public class Employee
     public int? DepartmentId { get; set; }
     
     public int? PositionId { get; set; }
+
+    public int? LevelId { get; set; }
     
     [Column(TypeName = "decimal(18,2)")]
     public decimal Salary { get; set; }
     
     [MaxLength(50)]
     public string EmploymentStatus { get; set; } = "Active";
+    
+    // Manager relationship
+    public int? ReportsToId { get; set; }
     
     [MaxLength(500)]
     public string? Address { get; set; }
@@ -81,6 +86,9 @@ public class Employee
     public DateTime? ModifiedDate { get; set; }
     
     // Navigation properties
+    [ForeignKey("ReportsToId")]
+    public virtual Employee? Manager { get; set; }
+    public virtual ICollection<Employee> DirectReports { get; set; } = new List<Employee>();
     public virtual Department? Department { get; set; }
     public virtual Position? Position { get; set; }
     public virtual ICollection<Leave> Leaves { get; set; } = new List<Leave>();
@@ -89,4 +97,5 @@ public class Employee
     public virtual ICollection<EmployeeExperience> Experiences { get; set; } = new List<EmployeeExperience>();
     public virtual ICollection<EmployeeEducation> Educations { get; set; } = new List<EmployeeEducation>();
     public virtual ICollection<EmployeeCertification> Certifications { get; set; } = new List<EmployeeCertification>();
+    public virtual Level? Level { get; set; }
 }

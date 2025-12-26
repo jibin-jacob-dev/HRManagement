@@ -86,7 +86,12 @@ public class EmployeeProfileController : ControllerBase
     public async Task<IActionResult> UpdatePersonalInfo([FromBody] Employee updateData)
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        var user = await _context.Users.Include(u => u.Employee).FirstOrDefaultAsync(u => u.Id == userId);
+        var user = await _context.Users
+            .Include(u => u.Employee)
+                .ThenInclude(e => e.Department)
+            .Include(u => u.Employee)
+                .ThenInclude(e => e.Position)
+            .FirstOrDefaultAsync(u => u.Id == userId);
 
         if (user == null || user.Employee == null)
             return NotFound("Employee profile not found");
@@ -116,7 +121,13 @@ public class EmployeeProfileController : ControllerBase
 
         await _context.SaveChangesAsync();
 
-        return Ok(new { message = "Personal information updated successfully", employee });
+        // Re-fetch with inclusions to ensure frontend gets full object
+        var updatedEmployee = await _context.Employees
+            .Include(e => e.Department)
+            .Include(e => e.Position)
+            .FirstOrDefaultAsync(e => e.EmployeeId == employee.EmployeeId);
+
+        return Ok(new { message = "Personal information updated successfully", employee = updatedEmployee });
     }
 
     [HttpPost("picture")]
@@ -148,5 +159,49 @@ public class EmployeeProfileController : ControllerBase
         await _context.SaveChangesAsync();
 
         return Ok(new { profilePictureUrl = user.Employee.ProfilePicture });
+    }
+
+    [HttpPut("professional")]
+    public async Task<IActionResult> UpdateProfessionalInfo([FromBody] Employee updateData)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var user = await _context.Users
+            .Include(u => u.Employee)
+                .ThenInclude(e => e.Department)
+            .Include(u => u.Employee)
+                .ThenInclude(e => e.Position)
+            .FirstOrDefaultAsync(u => u.Id == userId);
+
+        if (user == null || user.Employee == null)
+            return NotFound("Employee profile not found");
+
+        var employee = user.Employee;
+
+        // Non-sensitive fields (if any) could go here
+        employee.JobTitle = updateData.JobTitle;
+
+        // Admin-only fields
+        if (User.IsInRole("Admin"))
+        {
+            employee.HireDate = updateData.HireDate;
+            employee.DepartmentId = updateData.DepartmentId;
+            employee.PositionId = updateData.PositionId;
+            employee.LevelId = updateData.LevelId;
+            employee.ReportsToId = updateData.ReportsToId;
+            employee.Salary = updateData.Salary;
+            employee.EmploymentStatus = updateData.EmploymentStatus;
+        }
+
+        employee.ModifiedDate = DateTime.UtcNow;
+
+        await _context.SaveChangesAsync();
+
+        // Re-fetch with inclusions for frontend update
+        var updatedEmployee = await _context.Employees
+            .Include(e => e.Department)
+            .Include(e => e.Position)
+            .FirstOrDefaultAsync(e => e.EmployeeId == employee.EmployeeId);
+
+        return Ok(new { message = "Professional information updated successfully", employee = updatedEmployee });
     }
 }

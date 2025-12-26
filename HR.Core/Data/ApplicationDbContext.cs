@@ -22,6 +22,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
     public DbSet<EmployeeExperience> EmployeeExperiences { get; set; }
     public DbSet<EmployeeEducation> EmployeeEducations { get; set; }
     public DbSet<EmployeeCertification> EmployeeCertifications { get; set; }
+    public DbSet<Level> Levels { get; set; }
     
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -39,6 +40,19 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
             .WithMany(p => p.Employees)
             .HasForeignKey(e => e.PositionId)
             .OnDelete(DeleteBehavior.SetNull);
+
+        builder.Entity<Employee>()
+            .HasOne(e => e.Level)
+            .WithMany(l => l.Employees)
+            .HasForeignKey(e => e.LevelId)
+            .OnDelete(DeleteBehavior.SetNull);
+        
+        // Employee self-referencing relationship (Manager/DirectReports)
+        builder.Entity<Employee>()
+            .HasOne(e => e.Manager)
+            .WithMany(e => e.DirectReports)
+            .HasForeignKey(e => e.ReportsToId)
+            .OnDelete(DeleteBehavior.Restrict);
         
         builder.Entity<Position>()
             .HasOne(p => p.Department)
