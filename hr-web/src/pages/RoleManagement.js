@@ -5,7 +5,7 @@ import { ModuleRegistry, AllCommunityModule } from 'ag-grid-community';
 import { roleService } from '../services/api';
 import { useGridSettings } from '../hooks/useGridSettings';
 import GridContainer from '../components/common/GridContainer';
-import { toast } from 'react-toastify';
+import alertService from '../services/alertService';
 import Layout from '../components/layout/Layout';
 
 // Custom Styles
@@ -33,7 +33,7 @@ const RoleManagement = () => {
             setRoles(Array.isArray(data) ? data : []);
         } catch (error) {
             console.error('Error fetching roles:', error);
-            toast.error('Failed to fetch roles');
+            alertService.showToast('Failed to fetch roles', 'error');
         } finally {
             setLoading(false);
         }
@@ -41,34 +41,39 @@ const RoleManagement = () => {
 
     const handleAddRole = async () => {
         if (!newRoleName.trim()) {
-            toast.warning('Please enter a role name');
+            alertService.showToast('Please enter a role name', 'warning');
             return;
         }
 
         try {
             await roleService.createRole(newRoleName);
-            toast.success('Role created successfully');
+            alertService.showToast('Role created successfully');
             setShowModal(false);
             setNewRoleName('');
             fetchRoles();
         } catch (error) {
             const message = error.response?.data?.message || 'Failed to create role';
-            toast.error(message);
+            alertService.showToast(message, 'error');
         }
     };
 
     const handleDeleteRole = async (roleName) => {
-        if (!window.confirm(`Are you sure you want to delete the role "${roleName}"?`)) {
+        const isConfirmed = await alertService.showConfirm(
+            'Are you sure?',
+            `You want to delete the role "${roleName}"?`
+        );
+
+        if (!isConfirmed) {
             return;
         }
 
         try {
             await roleService.deleteRole(roleName);
-            toast.success('Role deleted successfully');
+            alertService.showToast('Role deleted successfully');
             fetchRoles();
         } catch (error) {
             const message = error.response?.data?.message || 'Failed to delete role';
-            toast.error(message);
+            alertService.showToast(message, 'error');
         }
     };
 

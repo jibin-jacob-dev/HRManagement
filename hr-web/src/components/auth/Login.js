@@ -1,26 +1,26 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { authService } from '../../services/api';
-import { Form, Button, Card, Container, Row, Col, Alert, Spinner } from 'react-bootstrap';
+import alertService from '../../services/alertService';
+import { Form, Button, Card, Container, Spinner } from 'react-bootstrap';
 import ThemeToggle from '../common/ThemeToggle';
 
 const Login = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setError('');
         setLoading(true);
 
         try {
             await authService.login(email, password);
             navigate('/dashboard');
         } catch (err) {
-            setError(err.response?.data?.message || 'Invalid email or password. Please try again.');
+            const message = err.response?.data?.message || 'Invalid email or password. Please try again.';
+            alertService.showError('Login Failed', message);
         } finally {
             setLoading(false);
         }
@@ -36,7 +36,6 @@ const Login = () => {
                     <Card.Body className="p-4">
                         <h2 className="text-center mb-4 text-primary">HR Management</h2>
                         <h4 className="text-center mb-4">Login</h4>
-                        {error && <Alert variant="danger">{error}</Alert>}
                         <Form onSubmit={handleSubmit}>
                             <Form.Group className="mb-3" id="email">
                                 <Form.Label>Email Address</Form.Label>
