@@ -5,6 +5,8 @@ import * as Yup from 'yup';
 import { employeeProfileService, authService } from '../services/api';
 import alertService from '../services/alertService';
 import ImageCropper from '../components/common/ImageCropper';
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 import './Profile.css';
 
 const Profile = () => {
@@ -204,7 +206,7 @@ const Profile = () => {
                                     onSubmit={handleUpdatePersonal}
                                     enableReinitialize
                                 >
-                                    {({ values, errors, touched, handleChange, handleBlur, handleSubmit, isSubmitting }) => (
+                                    {({ values, errors, touched, handleChange, handleBlur, handleSubmit, isSubmitting, setFieldValue }) => (
                                         <Form onSubmit={handleSubmit}>
                                             <Row className="g-4">
                                                 <Col md={6}>
@@ -263,12 +265,22 @@ const Profile = () => {
                                                 <Col md={4}>
                                                     <Form.Group>
                                                         <Form.Label className="text-muted small fw-bold">Date of Birth</Form.Label>
-                                                        <Form.Control
-                                                            type="date"
-                                                            name="dateOfBirth"
-                                                            value={values.dateOfBirth}
-                                                            onChange={handleChange}
-                                                        />
+                                                        <div className="datepicker-wrapper position-relative">
+                                                            <DatePicker
+                                                                selected={values.dateOfBirth ? new Date(values.dateOfBirth) : null}
+                                                                onChange={(date) => {
+                                                                    const dateStr = date ? date.toISOString().split('T')[0] : '';
+                                                                    setFieldValue('dateOfBirth', dateStr);
+                                                                }}
+                                                                dateFormat="MMMM d, yyyy"
+                                                                className="form-control"
+                                                                placeholderText="Select Date"
+                                                                showYearDropdown
+                                                                scrollableYearDropdown
+                                                                yearDropdownItemNumber={100}
+                                                            />
+                                                            <i className="fas fa-calendar-alt position-absolute end-0 top-50 translate-middle-y me-3 pointer-events-none opacity-50 text-primary"></i>
+                                                        </div>
                                                     </Form.Group>
                                                 </Col>
                                                 <Col md={4}>
