@@ -9,6 +9,9 @@ import Dashboard from './components/dashboard/Dashboard';
 
 import UserManagement from './pages/UserManagement';
 import RoleManagement from './pages/RoleManagement';
+import MenuManagement from './pages/MenuManagement';
+import { MenuProvider } from './context/MenuContext';
+import Layout from './components/layout/Layout';
 
 // Simple component to protect routes
 const ProtectedRoute = ({ children }) => {
@@ -24,31 +27,23 @@ function App() {
                     <Route path="/login" element={<Login />} />
                     <Route path="/register" element={<Register />} />
                     <Route 
-                        path="/dashboard" 
+                        path="/*" 
                         element={
                             <ProtectedRoute>
-                                <Dashboard />
+                                <MenuProvider>
+                                    <Layout>
+                                        <Routes>
+                                            <Route path="/dashboard" element={<Dashboard />} />
+                                            <Route path="/user-management" element={<UserManagement />} />
+                                            <Route path="/role-management" element={<RoleManagement />} />
+                                            <Route path="/menu-management" element={<MenuManagement />} />
+                                            <Route path="/" element={<Navigate to="/dashboard" />} />
+                                        </Routes>
+                                    </Layout>
+                                </MenuProvider>
                             </ProtectedRoute>
                         } 
                     />
-                    <Route 
-                        path="/user-management" 
-                        element={
-                            <ProtectedRoute>
-                                <UserManagement />
-                            </ProtectedRoute>
-                        } 
-                    />
-                    <Route 
-                        path="/role-management" 
-                        element={
-                            <ProtectedRoute>
-                                <RoleManagement />
-                            </ProtectedRoute>
-                        } 
-                    />
-                    {/* Default redirect to login */}
-                    <Route path="/" element={<Navigate to="/login" />} />
                 </Routes>
             </Router>
         </ThemeProvider>

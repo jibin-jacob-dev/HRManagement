@@ -28,7 +28,10 @@ export const authService = {
         const response = await api.post('/auth/login', { email, password });
         if (response.data.token) {
             localStorage.setItem('token', response.data.token);
-            const userWithRoles = { ...response.data.user, roles: response.data.roles };
+            // Handle case sensitivity of Roles/roles from backend
+            const backendUser = response.data.user;
+            const roles = backendUser.roles || backendUser.Roles || [];
+            const userWithRoles = { ...backendUser, roles: roles };
             localStorage.setItem('user', JSON.stringify(userWithRoles));
         }
         return response.data;
@@ -89,6 +92,41 @@ export const roleService = {
     },
     deleteRole: async (roleName) => {
         const response = await api.delete(`/roles/${roleName}`);
+        return response.data;
+    }
+};
+
+export const menuService = {
+    getMenus: async () => {
+        const response = await api.get('/menus');
+        return response.data;
+    },
+    getMenu: async (id) => {
+        const response = await api.get(`/menus/${id}`);
+        return response.data;
+    },
+    createMenu: async (menu) => {
+        const response = await api.post('/menus', menu);
+        return response.data;
+    },
+    updateMenu: async (id, menu) => {
+        const response = await api.put(`/menus/${id}`, menu);
+        return response.data;
+    },
+    deleteMenu: async (id) => {
+        const response = await api.delete(`/menus/${id}`);
+        return response.data;
+    },
+    getRoleMenuIds: async (roleId) => {
+        const response = await api.get(`/menus/role/${roleId}`);
+        return response.data;
+    },
+    updateRoleMenus: async (roleId, menuIds) => {
+        const response = await api.post(`/menus/role/${roleId}`, menuIds);
+        return response.data;
+    },
+    getCurrentUserMenus: async () => {
+        const response = await api.get('/menus/current-user');
         return response.data;
     }
 };

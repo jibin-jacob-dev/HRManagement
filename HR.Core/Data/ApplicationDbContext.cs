@@ -17,6 +17,8 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
     public DbSet<Leave> Leaves { get; set; }
     public DbSet<Attendance> Attendances { get; set; }
     public DbSet<Payroll> Payrolls { get; set; }
+    public DbSet<Menu> Menus { get; set; }
+    public DbSet<RoleMenu> RoleMenus { get; set; }
     
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -64,5 +66,19 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
             .WithMany()
             .HasForeignKey(u => u.EmployeeId)
             .OnDelete(DeleteBehavior.SetNull);
+
+        // Menu Configuration
+        builder.Entity<RoleMenu>()
+            .HasKey(rm => new { rm.RoleId, rm.MenuId });
+
+        builder.Entity<RoleMenu>()
+            .HasOne(rm => rm.Role)
+            .WithMany(r => r.RoleMenus)
+            .HasForeignKey(rm => rm.RoleId);
+
+        builder.Entity<RoleMenu>()
+            .HasOne(rm => rm.Menu)
+            .WithMany(m => m.RoleMenus)
+            .HasForeignKey(rm => rm.MenuId);
     }
 }
