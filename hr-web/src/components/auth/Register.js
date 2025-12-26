@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { authService } from '../../services/api';
-import { Form, Button, Card, Container, Alert, Spinner } from 'react-bootstrap';
+import alertService from '../../services/alertService';
+import { Form, Button, Card, Container, Spinner } from 'react-bootstrap';
 import ThemeToggle from '../common/ThemeToggle';
 
 const Register = () => {
@@ -12,8 +13,6 @@ const Register = () => {
         password: '',
         confirmPassword: ''
     });
-    const [error, setError] = useState('');
-    const [success, setSuccess] = useState('');
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
 
@@ -23,11 +22,8 @@ const Register = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setError('');
-        setSuccess('');
-
         if (formData.password !== formData.confirmPassword) {
-            return setError('Passwords do not match');
+            return alertService.showToast('Passwords do not match', 'warning');
         }
 
         setLoading(true);
@@ -39,17 +35,19 @@ const Register = () => {
                 password: formData.password
             };
             await authService.register(userData);
-            setSuccess('Registration successful! Redirecting to login...');
+            alertService.showSuccess('Registration successful!', 'Redirecting to login...');
             setTimeout(() => navigate('/login'), 2000);
         } catch (err) {
             const data = err.response?.data;
+            let errorMessage = 'Failed to create an account';
             if (typeof data === 'object' && !data.message) {
                 // Handle Identity errors array
                 const errors = Object.values(data).flat().join('. ');
-                setError(errors || 'Registration failed');
+                errorMessage = errors || errorMessage;
             } else {
-                setError(data?.message || 'Failed to create an account');
+                errorMessage = data?.message || errorMessage;
             }
+            alertService.showError('Registration Failed', errorMessage);
         } finally {
             setLoading(false);
         }
@@ -65,8 +63,6 @@ const Register = () => {
                     <Card.Body className="p-4">
                         <h2 className="text-center mb-4 text-primary">HR Management</h2>
                         <h4 className="text-center mb-4">Create Account</h4>
-                        {error && <Alert variant="danger">{error}</Alert>}
-                        {success && <Alert variant="success">{success}</Alert>}
                         <Form onSubmit={handleSubmit}>
                             <div className="d-flex gap-2">
                                 <Form.Group className="mb-3 w-50">

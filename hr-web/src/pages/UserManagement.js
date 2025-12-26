@@ -6,7 +6,7 @@ import { userService } from '../services/api';
 import { useTheme } from '../context/ThemeContext';
 import { useGridSettings } from '../hooks/useGridSettings';
 import GridContainer from '../components/common/GridContainer';
-import { toast } from 'react-toastify';
+import alertService from '../services/alertService';
 import Layout from '../components/layout/Layout';
 
 // Custom Styles
@@ -55,7 +55,7 @@ const UserManagement = () => {
             setUsers(usersArray);
         } catch (error) {
             console.error('Error fetching users:', error);
-            toast.error('Failed to fetch users');
+            alertService.showToast('Failed to fetch users', 'error');
         } finally {
             setLoading(false);
         }
@@ -102,16 +102,16 @@ const UserManagement = () => {
         try {
             if (modalMode === 'add') {
                 await userService.createUser(formData);
-                toast.success('User created successfully');
+                alertService.showToast('User created successfully');
             } else {
                 await userService.updateUser(selectedUser.id, formData);
-                toast.success('User updated successfully');
+                alertService.showToast('User updated successfully');
             }
             setShowModal(false);
             fetchData();
         } catch (error) {
             const message = error.response?.data?.message || `Failed to ${modalMode} user`;
-            toast.error(message);
+            alertService.showToast(message, 'error');
         }
     };
 
@@ -207,7 +207,7 @@ const UserManagement = () => {
 
     return (
         <Layout>
-            <Container fluid className="user-management-container">
+            <Container fluid className="user-management-container page-animate">
                 <div className="d-flex justify-content-between align-items-end mb-4">
                     <div>
                         <h2 className="mb-1 fw-bold">User Management</h2>

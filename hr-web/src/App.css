@@ -36,3 +36,118 @@
     transform: rotate(360deg);
   }
 }
+
+/* Global Page Animations */
+@keyframes fadeIn {
+    from { 
+        opacity: 0; 
+        transform: translateY(10px); 
+    }
+    to { 
+        opacity: 1; 
+        transform: translateY(0); 
+    }
+}
+
+.page-animate {
+    animation: fadeIn 0.5s ease-out forwards;
+}
+
+/* SweetAlert2 Dark Mode Overrides */
+[data-bs-theme="dark"] .swal2-popup {
+    background: #2b3035 !important;
+    color: #dee2e6 !important;
+}
+
+[data-bs-theme="dark"] .swal2-title {
+    color: #f8f9fa !important;
+}
+
+[data-bs-theme="dark"] .swal2-html-container {
+    color: #dee2e6 !important;
+}
+
+[data-bs-theme="dark"] .swal2-input,
+[data-bs-theme="dark"] .swal2-textarea {
+    background: #212529 !important;
+    color: #fff !important;
+    border-color: #495057 !important;
+}
+
+[data-bs-theme="dark"] .swal2-validation-message {
+    background: #212529 !important;
+    color: #ea868f !important;
+}
+
+/* Toast Specifics for Dark Mode */
+[data-bs-theme="dark"] .swal2-toast {
+    background: #2b3035 !important;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.5) !important;
+}
+
+/* -------------------------------------------
+   Global Bootstrap Modal Enhancements
+------------------------------------------- */
+
+/* Glassmorphic Backdrop */
+.modal-backdrop.show {
+    opacity: 0.5;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+}
+
+/* Premium Card Style */
+.modal-content {
+    border: none;
+    border-radius: 1rem; /* 16px */
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+    overflow: hidden;
+}
+
+/* Header Refinement */
+.modal-header {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    padding: 1.25rem 1.5rem;
+    background: transparent;
+}
+
+/* Dark Mode Header Border */
+[data-bs-theme="dark"] .modal-header {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.modal-title {
+    font-weight: 600;
+    letter-spacing: -0.01em;
+}
+
+/* Body Spacing */
+.modal-body {
+    padding: 1.5rem;
+}
+
+/* Footer Refinement */
+.modal-footer {
+    border-top: none;
+    padding: 1rem 1.5rem 1.5rem;
+    background: transparent;
+    gap: 0.75rem;
+}
+
+/* Close Button Alignment */
+.modal-header .btn-close {
+    margin: -0.5rem -0.5rem -0.5rem auto;
+    padding: 1rem;
+    opacity: 0.5;
+    transition: opacity 0.2s ease;
+}
+
+.modal-header .btn-close:hover {
+    opacity: 1;
+}
+
+/* Dark Mode Specific Adjustments for Modal Content */
+[data-bs-theme="dark"] .modal-content {
+    background-color: #2b3035; /* Bootstrap dark gray */
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+}

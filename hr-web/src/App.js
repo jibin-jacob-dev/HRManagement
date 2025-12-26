@@ -8,6 +8,7 @@ import Register from './components/auth/Register';
 import Dashboard from './components/dashboard/Dashboard';
 
 import UserManagement from './pages/UserManagement';
+import RoleManagement from './pages/RoleManagement';
 
 // Simple component to protect routes
 const ProtectedRoute = ({ children }) => {
@@ -35,6 +36,14 @@ function App() {
                         element={
                             <ProtectedRoute>
                                 <UserManagement />
+                            </ProtectedRoute>
+                        } 
+                    />
+                    <Route 
+                        path="/role-management" 
+                        element={
+                            <ProtectedRoute>
+                                <RoleManagement />
                             </ProtectedRoute>
                         } 
                     />

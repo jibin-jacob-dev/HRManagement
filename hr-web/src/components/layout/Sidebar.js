@@ -38,7 +38,7 @@ const Sidebar = ({ isCollapsed, toggleSidebar }) => {
                             to="/dashboard" 
                             className={({ isActive }) => `${isActive ? 'active-link' : 'sidebar-link'}`}
                         >
-                            <i className="fas fa-th-large"></i>
+                            <i className="fas fa-gauge-high"></i>
                             <span className="sidebar-text">Dashboard</span>
                         </Nav.Link>
                     </Nav.Item>
@@ -51,6 +51,17 @@ const Sidebar = ({ isCollapsed, toggleSidebar }) => {
                         >
                             <i className="fas fa-user-shield"></i>
                             <span className="sidebar-text">User Management</span>
+                        </Nav.Link>
+                    </Nav.Item>
+
+                    <Nav.Item>
+                        <Nav.Link 
+                            as={NavLink} 
+                            to="/role-management" 
+                            className={({ isActive }) => `${isActive ? 'active-link' : 'sidebar-link'}`}
+                        >
+                            <i className="fas fa-shield-alt"></i>
+                            <span className="sidebar-text">Role Management</span>
                         </Nav.Link>
                     </Nav.Item>
 
