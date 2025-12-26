@@ -1,11 +1,19 @@
 :root {
     --profile-border: #fff;
     --profile-text: #212529;
+    --profile-nav-hover-bg: #f8f9fa;
+    --profile-nav-hover-color: #4e54c8;
+    --profile-nav-active-bg: #eef2ff;
+    --profile-nav-active-color: #4e54c8;
 }
 
-[data-theme='dark'] {
+[data-bs-theme='dark'] {
     --profile-border: var(--bs-card-bg);
     --profile-text: #fff;
+    --profile-nav-hover-bg: #2b2b40;
+    --profile-nav-hover-color: #ffffff;
+    --profile-nav-active-bg: #323248;
+    --profile-nav-active-color: #ffffff;
 }
 
 .profile-container {
@@ -88,13 +96,13 @@
 }
 
 .profile-sidebar-nav .nav-link:hover {
-    background: #f8f9fa;
-    color: #4e54c8;
+    background: var(--profile-nav-hover-bg);
+    color: var(--profile-nav-hover-color);
 }
 
 .profile-sidebar-nav .nav-link.active {
-    background: #eef2ff;
-    color: #4e54c8;
+    background: var(--profile-nav-active-bg);
+    color: var(--profile-nav-active-color);
     border-left-color: #4e54c8;
 }
 
@@ -112,51 +120,43 @@
     to { opacity: 1; transform: translateY(0); }
 }
 
-[data-theme='dark'] .profile-header,
-[data-theme='dark'] .card {
+[data-bs-theme='dark'] .profile-header,
+[data-bs-theme='dark'] .card {
     background-color: var(--bs-card-bg) !important;
     color: #ffffff !important;
 }
 
-[data-theme='dark'] .profile-picture-container {
+[data-bs-theme='dark'] .profile-picture-container {
     background-color: var(--bs-card-bg) !important;
 }
 
-[data-theme='dark'] .profile-picture-rounded {
+[data-bs-theme='dark'] .profile-picture-rounded {
     border-color: var(--bs-card-bg) !important;
 }
 
-[data-theme='dark'] .profile-sidebar-nav .nav-link:hover {
-    background: #2b2b40;
-}
-
-[data-theme='dark'] .profile-sidebar-nav .nav-link.active {
-    background: #252744;
-}
-
-[data-theme='dark'] .profile-name {
+[data-bs-theme='dark'] .profile-name {
     color: #ffffff !important;
 }
 
-[data-theme='dark'] .text-muted {
+[data-bs-theme='dark'] .text-muted {
     color: #a1a5b7 !important;
 }
 
-[data-theme='dark'] .form-control,
-[data-theme='dark'] .form-select {
+[data-bs-theme='dark'] .form-control,
+[data-bs-theme='dark'] .form-select {
     background: #151521;
     border-color: #2b2b40;
     color: white;
 }
 
-[data-theme='dark'] .form-control[readonly],
-[data-theme='dark'] .form-select[disabled] {
+[data-bs-theme='dark'] .form-control[readonly],
+[data-bs-theme='dark'] .form-select[disabled] {
     background-color: #1b1b29 !important;
     border-color: #323248;
     color: #92929f !important;
     opacity: 0.8;
 }
 
-[data-theme='dark'] hr {
+[data-bs-theme='dark'] hr {
     border-color: #2b2b40;
 }
