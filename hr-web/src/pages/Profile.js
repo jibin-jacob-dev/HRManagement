@@ -72,12 +72,23 @@ const Profile = () => {
 
     const handleUpdatePersonal = async (values, { setSubmitting }) => {
         try {
-            await employeeProfileService.updatePersonalInfo(values);
-            setProfile({ ...profile, ...values });
+            // Prepare payload by merging with existing profile to include required fields (Email, HireDate etc.)
+            const updateData = {
+                ...profile,
+                ...values,
+                // Ensure empty date is sent as null
+                dateOfBirth: values.dateOfBirth || null
+            };
+            
+            const response = await employeeProfileService.updatePersonalInfo(updateData);
+            setProfile(response.employee);
             alertService.showToast('Personal information updated successfully');
         } catch (error) {
             console.error('Update failed:', error);
-            alertService.showToast('Update failed', 'error');
+            const message = error.response?.data?.errors 
+                ? 'Validation failed. Please check your data.' 
+                : 'Update failed. Please try again.';
+            alertService.showToast(message, 'error');
         } finally {
             setSubmitting(false);
         }
@@ -275,9 +286,10 @@ const Profile = () => {
                                                                 dateFormat="MMMM d, yyyy"
                                                                 className="form-control"
                                                                 placeholderText="Select Date"
+                                                                showMonthDropdown
                                                                 showYearDropdown
-                                                                scrollableYearDropdown
-                                                                yearDropdownItemNumber={100}
+                                                                dropdownMode="select"
+                                                                scrollableYearDropdown={false}
                                                             />
                                                             <i className="fas fa-calendar-alt position-absolute end-0 top-50 translate-middle-y me-3 pointer-events-none opacity-50 text-primary"></i>
                                                         </div>

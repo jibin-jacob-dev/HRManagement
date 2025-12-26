@@ -216,3 +216,16 @@
     background-color: rgba(13, 110, 253, 0.1);
     transform: translateY(-1px);
 }
+
+/* -------------------------------------------
+   Global AG-Grid Selection Suppression
+------------------------------------------- */
+.ag-cell-focus, .ag-cell-no-focus {
+    outline: none !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+.ag-root-wrapper {
+    user-select: none !important;
+}

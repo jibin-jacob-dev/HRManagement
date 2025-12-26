@@ -32,5 +32,5 @@ export const useGridSettings = () => {
         cellDataType: false, // v35 strict type fix
     }), []);
 
-    return { gridTheme, defaultColDef, isDarkMode };
+    return { gridTheme, defaultColDef, isDarkMode, suppressCellFocus: true };
 };

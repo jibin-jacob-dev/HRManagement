@@ -94,3 +94,21 @@
     background-color: rgba(13, 110, 253, 0.1);
     transform: translateY(-1px);
 }
+
+/* Status Badge Interactive transitions - Optimized for Clarity */
+.status-badge-toggle {
+    transition: all 0.2s ease-in-out;
+    cursor: pointer;
+    backface-visibility: hidden; /* Force cleaner rendering */
+    -webkit-font-smoothing: subpixel-antialiased;
+}
+
+.status-badge-toggle:hover {
+    filter: brightness(1.1);
+    box-shadow: 0 0 0 1px currentColor, 0 4px 10px rgba(0, 0, 0, 0.12);
+    border-color: currentColor !important;
+}
+
+.status-badge-toggle:active {
+    transform: scale(0.97);
+}
