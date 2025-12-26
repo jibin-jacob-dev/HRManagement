@@ -7,7 +7,6 @@ import { useTheme } from '../context/ThemeContext';
 import { useGridSettings } from '../hooks/useGridSettings';
 import GridContainer from '../components/common/GridContainer';
 import alertService from '../services/alertService';
-import Layout from '../components/layout/Layout';
 
 // Custom Styles
 import './UserManagement.css';
@@ -206,8 +205,7 @@ const UserManagement = () => {
     const defaultColDefMemo = useMemo(() => defaultColDef, [defaultColDef]);
 
     return (
-        <Layout>
-            <Container fluid className="user-management-container page-animate">
+        <Container fluid className="user-management-container page-animate">
                 <div className="d-flex justify-content-between align-items-end mb-4">
                     <div>
                         <h2 className="mb-1 fw-bold">User Management</h2>
@@ -333,7 +331,6 @@ const UserManagement = () => {
                     </Modal.Footer>
                 </Modal>
             </Container>
-        </Layout>
     );
 };
 

