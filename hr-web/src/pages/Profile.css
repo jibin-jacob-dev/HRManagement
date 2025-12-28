@@ -462,3 +462,201 @@
 [data-bs-theme='dark'] .modal-header {
     border-bottom-color: rgba(255,255,255,0.05) !important;
 }
+
+/* Certification Card Premium Styles */
+.certification-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    background: var(--bs-card-bg);
+}
+
+.cert-actions-wrapper {
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.certification-card:hover .cert-actions-wrapper {
+    opacity: 1;
+}
+
+.hover-lift:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1) !important;
+}
+
+.cert-icon-wrapper {
+    width: 54px;
+    height: 54px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.certification-card:hover .cert-icon-wrapper {
+    background-color: var(--profile-primary) !important;
+    color: #fff !important;
+    transform: scale(1.1);
+}
+
+.btn-premium-view-cert {
+    border: 1px solid var(--profile-primary);
+    color: var(--profile-primary);
+    background: transparent;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.btn-premium-view-cert:hover {
+    background: var(--profile-primary);
+    color: #fff !important;
+}
+
+.no-caret::after {
+    display: none !important;
+}
+
+/* Upload Section Styling */
+.cert-upload-section {
+    transition: all 0.3s ease;
+    background: rgba(78, 84, 200, 0.03);
+    border: 2px dashed #dee2e6 !important;
+    min-height: 200px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+[data-bs-theme='dark'] .cert-upload-section {
+    background: rgba(255, 255, 255, 0.03);
+    border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+.cert-upload-section.dragging {
+    border-color: var(--profile-primary) !important;
+    background: rgba(78, 84, 200, 0.1);
+    transform: scale(1.02);
+}
+
+.cert-upload-section:hover {
+    border-color: var(--profile-primary) !important;
+    background: rgba(78, 84, 200, 0.05);
+}
+
+.uploaded-file-info {
+    animation: fadeIn 0.4s ease;
+    transition: all 0.3s ease;
+    border: 1px solid transparent;
+}
+
+.cert-preview-wrapper {
+    display: inline-block;
+}
+
+.cert-image-preview {
+    border: 3px solid #fff;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    transition: transform 0.3s ease;
+}
+
+.cert-image-preview:hover {
+    transform: scale(1.05);
+}
+
+.cert-file-icon {
+    width: 80px;
+    height: 80px;
+    background: #fff;
+    border-radius: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.08);
+    transition: all 0.3s ease;
+}
+
+[data-bs-theme='dark'] .cert-file-icon {
+    background: rgba(255,255,255,0.05);
+}
+
+.cert-file-icon:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 24px rgba(0,0,0,0.12);
+}
+
+[data-bs-theme='dark'] .cert-image-preview {
+    border-color: rgba(255,255,255,0.1);
+}
+
+.smaller {
+    font-size: 0.75rem;
+}
+
+/* Mobile Adjustments */
+@media (max-width: 768px) {
+    .profile-info-wrapper {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        padding-top: 10px;
+    }
+    
+    .profile-picture-rounded {
+        width: 120px;
+        height: 120px;
+    }
+    
+    .profile-basic-info {
+        padding-top: 0;
+    }
+    
+    .profile-sidebar-nav {
+        flex-direction: row;
+        overflow-x: auto;
+        white-space: nowrap;
+        padding-bottom: 5px;
+    }
+    
+    .profile-sidebar-nav .nav-link {
+        padding: 10px 15px;
+        border-left: none;
+        border-bottom: 3px solid transparent;
+    }
+    
+    .profile-sidebar-nav .nav-link.active {
+        border-bottom-color: var(--profile-primary);
+    }
+}
+
+/* Premium Add Button Styles */
+.btn-premium-add {
+    padding: 6px 16px;
+    border-radius: 8px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    background: transparent;
+    color: var(--profile-primary);
+    border: 2px solid var(--profile-primary);
+    font-weight: 600;
+    font-size: 0.85rem;
+    gap: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: none;
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.btn-premium-add:hover:not(:disabled) {
+    background: var(--profile-primary);
+    color: #fff !important;
+}
+
+.btn-premium-add:active:not(:disabled) {
+    opacity: 0.8;
+}
+
+[data-bs-theme='dark'] .btn-premium-add {
+    border-color: var(--profile-primary);
+    color: var(--profile-primary);
+}

@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Container, Row, Col, Card, Nav, Tab, Form, Button, InputGroup, Badge, Spinner, Modal } from 'react-bootstrap';
+import React, { useState, useEffect, useMemo } from 'react';
+import { Container, Row, Col, Card, Nav, Tab, Form, Button, InputGroup, Badge, Spinner, Modal, Dropdown } from 'react-bootstrap';
 import { Formik } from 'formik';
 import * as Yup from 'yup';
 import { employeeProfileService, authService, departmentService, positionService, levelService } from '../services/api';
@@ -19,7 +19,34 @@ const Profile = () => {
     const [activeTab, setActiveTab] = useState('personal');
     const [showExperienceModal, setShowExperienceModal] = useState(false);
     const [editingExperience, setEditingExperience] = useState(null);
+    const [showEducationModal, setShowEducationModal] = useState(false);
+    const [editingEducation, setEditingEducation] = useState(null);
+    const [showCertificationModal, setShowCertificationModal] = useState(false);
+    const [editingCertification, setEditingCertification] = useState(null);
+    const [certificateFile, setCertificateFile] = useState(null);
+    const [isUploadingFile, setIsUploadingFile] = useState(false);
+    const [isDragging, setIsDragging] = useState(false);
     const isAdmin = authService.isAdmin();
+
+    // Memoized initial values for modals to prevent Formik reset during re-renders (e.g. file uploads)
+    const educationInitialValues = useMemo(() => ({
+        institution: editingEducation?.institution || '',
+        degree: editingEducation?.degree || '',
+        fieldOfStudy: editingEducation?.fieldOfStudy || '',
+        startDate: editingEducation?.startDate ? new Date(editingEducation.startDate) : new Date(),
+        endDate: editingEducation?.endDate ? new Date(editingEducation.endDate) : null,
+        grade: editingEducation?.grade || '',
+        description: editingEducation?.description || ''
+    }), [editingEducation]);
+
+    const certificationInitialValues = useMemo(() => ({
+        name: editingCertification?.name || '',
+        issuingOrganization: editingCertification?.issuingOrganization || '',
+        issueDate: editingCertification?.issueDate ? new Date(editingCertification.issueDate) : new Date(),
+        expiryDate: editingCertification?.expiryDate ? new Date(editingCertification.expiryDate) : null,
+        credentialId: editingCertification?.credentialId || '',
+        credentialUrl: editingCertification?.credentialUrl || ''
+    }), [editingCertification]);
     
     // Image Upload State
     const [showCropper, setShowCropper] = useState(false);
@@ -198,6 +225,148 @@ const Profile = () => {
         } catch (error) {
             console.error('Failed to delete experience:', error.response?.data || error.message);
             alertService.showToast('Failed to delete experience', 'error');
+        }
+    };
+
+    // Education Handlers
+    const handleSaveEducation = async (values, { setSubmitting, resetForm }) => {
+        try {
+            if (editingEducation) {
+                await employeeProfileService.updateEducation(editingEducation.id, values);
+                alertService.showToast('Education record updated successfully');
+            } else {
+                await employeeProfileService.addEducation(values);
+                alertService.showToast('Education record added successfully');
+            }
+            const updatedProfile = await employeeProfileService.getProfile();
+            setProfile(updatedProfile);
+            setShowEducationModal(false);
+            setEditingEducation(null);
+            resetForm();
+        } catch (error) {
+            console.error('Failed to save education:', error);
+            alertService.showToast(`Failed to ${editingEducation ? 'update' : 'add'} education`, 'error');
+        } finally {
+            setSubmitting(false);
+        }
+    };
+
+    const handleEditEducation = (edu) => {
+        setEditingEducation(edu);
+        setShowEducationModal(true);
+    };
+
+    const handleDeleteEducation = async (id) => {
+        const confirmed = await alertService.showConfirm(
+            'Delete Education',
+            'Are you sure you want to delete this education record?',
+            'Yes, delete it!'
+        );
+        if (!confirmed) return;
+        try {
+            await employeeProfileService.deleteEducation(id);
+            alertService.showToast('Education record deleted');
+            setProfile(prev => ({
+                ...prev,
+                educations: prev.educations.filter(e => e.id !== id)
+            }));
+        } catch (error) {
+            alertService.showToast('Failed to delete education', 'error');
+        }
+    };
+
+    // Certification Handlers
+    const handleSaveCertification = async (values, { setSubmitting, resetForm }) => {
+        try {
+            if (editingCertification) {
+                await employeeProfileService.updateCertification(editingCertification.id, values);
+                alertService.showToast('Certification updated successfully');
+            } else {
+                await employeeProfileService.addCertification(values);
+                alertService.showToast('Certification added successfully');
+            }
+            const updatedProfile = await employeeProfileService.getProfile();
+            setProfile(updatedProfile);
+            setShowCertificationModal(false);
+            setEditingCertification(null);
+            resetForm();
+        } catch (error) {
+            console.error('Failed to save certification:', error);
+            alertService.showToast(`Failed to ${editingCertification ? 'update' : 'add'} certification`, 'error');
+        } finally {
+            setSubmitting(false);
+        }
+    };
+
+    const handleEditCertification = (cert) => {
+        setEditingCertification(cert);
+        setShowCertificationModal(true);
+    };
+
+    const handleDeleteCertification = async (id) => {
+        const confirmed = await alertService.showConfirm(
+            'Delete Certification',
+            'Are you sure you want to delete this certification?',
+            'Yes, delete it!'
+        );
+        if (!confirmed) return;
+        try {
+            await employeeProfileService.deleteCertification(id);
+            alertService.showToast('Certification removed');
+            setProfile(prev => ({
+                ...prev,
+                certifications: prev.certifications.filter(c => c.id !== id)
+            }));
+        } catch (error) {
+            alertService.showToast('Failed to delete certification', 'error');
+        }
+    };
+
+    const handleCertificateFileUpload = async (eOrFile, setFieldValue) => {
+        let file;
+        if (eOrFile.target && eOrFile.target.files) {
+            file = eOrFile.target.files[0];
+        } else {
+            file = eOrFile;
+        }
+
+        if (!file) return;
+
+        try {
+            setIsUploadingFile(true);
+            const formData = new FormData();
+            formData.append('file', file);
+            const response = await employeeProfileService.uploadCertificate(formData);
+            setFieldValue('credentialUrl', response.fileUrl);
+            alertService.showToast('Certificate uploaded successfully');
+        } catch (error) {
+            console.error('Certificate upload failed:', error);
+            alertService.showToast('Failed to upload certificate', 'error');
+        } finally {
+            setIsUploadingFile(false);
+        }
+    };
+
+    const handleDragOver = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsDragging(true);
+    };
+
+    const handleDragLeave = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsDragging(false);
+    };
+
+    const handleDrop = (e, setFieldValue) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsDragging(false);
+        
+        if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+            handleCertificateFileUpload(e.dataTransfer.files[0], setFieldValue);
+            e.dataTransfer.clearData();
         }
     };
 
@@ -436,6 +605,42 @@ const Profile = () => {
                                     >
                                         <i className={`fas ${isSaving ? 'fa-spinner fa-spin' : 'fa-check'}`}></i>
                                         <span>{isSaving ? 'Saving...' : 'Save Changes'}</span>
+                                    </button>
+                                )}
+                                {activeTab === 'experience' && (
+                                    <button 
+                                        onClick={() => {
+                                            setEditingExperience(null);
+                                            setShowExperienceModal(true);
+                                        }}
+                                        className="btn-premium-add shadow-sm"
+                                    >
+                                        <i className="fas fa-plus"></i>
+                                        <span>Add Experience</span>
+                                    </button>
+                                )}
+                                {activeTab === 'study' && (
+                                    <button 
+                                        onClick={() => {
+                                            setEditingEducation(null);
+                                            setShowEducationModal(true);
+                                        }}
+                                        className="btn-premium-add shadow-sm"
+                                    >
+                                        <i className="fas fa-plus"></i>
+                                        <span>Add Education</span>
+                                    </button>
+                                )}
+                                {activeTab === 'certification' && (
+                                    <button 
+                                        onClick={() => {
+                                            setEditingCertification(null);
+                                            setShowCertificationModal(true);
+                                        }}
+                                        className="btn-premium-add shadow-sm"
+                                    >
+                                        <i className="fas fa-plus"></i>
+                                        <span>Add Certification</span>
                                     </button>
                                 )}
                             </div>
@@ -779,19 +984,8 @@ const Profile = () => {
 
                             {activeTab === 'experience' && (
                                 <div className="p-2">
-                                    <div className="d-flex justify-content-between align-items-center mb-4">
-                                        <h5 className="fw-bold mb-0">Professional Journey</h5>
-                                        <Button 
-                                            variant="outline-primary" 
-                                            size="sm" 
-                                            className="rounded-pill px-3"
-                                            onClick={() => {
-                                                setEditingExperience(null);
-                                                setShowExperienceModal(true);
-                                            }}
-                                        >
-                                            <i className="fas fa-plus me-2"></i> Add Experience
-                                        </Button>
+                                    <div className="mb-4">
+                                        <h5 className="fw-bold mb-0 text-primary">Work Experience</h5>
                                     </div>
 
                                     {profile?.experiences && profile.experiences.length > 0 ? (
@@ -850,10 +1044,120 @@ const Profile = () => {
                                 </div>
                             )}
 
-                            {(activeTab === 'study' || activeTab === 'certification') && (
-                                <div className="text-center py-5">
-                                    <i className={`fas ${activeTab === 'study' ? 'fa-graduation-cap' : 'fa-certificate'} fs-1 text-muted mb-3`}></i>
-                                    <p className="text-muted">{activeTab === 'study' ? 'Education' : 'Certifications'} history coming soon...</p>
+                            {activeTab === 'study' && (
+                                <div className="p-2">
+                                    <div className="mb-4">
+                                        <h5 className="fw-bold mb-0 text-primary">Academic History</h5>
+                                    </div>
+
+                                    {profile?.educations && profile.educations.length > 0 ? (
+                                        <div className="education-list">
+                                            {[...profile.educations]
+                                                .sort((a, b) => new Date(b.startDate) - new Date(a.startDate))
+                                                .map((edu, index) => (
+                                                <div key={edu.id || index} className="timeline-item">
+                                                    <div className="timeline-dot bg-success"></div>
+                                                    <div className="timeline-content">
+                                                        <div className="d-flex justify-content-between">
+                                                            <span className="timeline-date">
+                                                                {new Date(edu.startDate).getFullYear()} - 
+                                                                {edu.endDate ? ` ${new Date(edu.endDate).getFullYear()}` : ' Present'}
+                                                            </span>
+                                                            <div className="d-flex gap-2">
+                                                                <Button variant="link" className="text-warning p-0 btn-edit-timeline" onClick={() => handleEditEducation(edu)}>
+                                                                    <i className="fas fa-pencil-alt"></i>
+                                                                </Button>
+                                                                <Button variant="link" className="text-danger p-0 btn-delete-timeline" onClick={() => handleDeleteEducation(edu.id)}>
+                                                                    <i className="fas fa-trash-alt"></i>
+                                                                </Button>
+                                                            </div>
+                                                        </div>
+                                                        <h6 className="timeline-title">{edu.degree} {edu.fieldOfStudy ? `in ${edu.fieldOfStudy}` : ''}</h6>
+                                                        <span className="timeline-company">{edu.institution}</span>
+                                                        {edu.grade && <p className="timeline-description mt-2 mb-0"><strong>Grade:</strong> {edu.grade}%</p>}
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <div className="text-center py-5 timeline-empty-state rounded-4 border border-dashed">
+                                            <i className="fas fa-graduation-cap fs-1 text-muted mb-3"></i>
+                                            <p className="text-muted mb-0">No education records found.</p>
+                                            <Button variant="link" className="mt-2" onClick={() => setShowEducationModal(true)}>Add your education</Button>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
+                            {activeTab === 'certification' && (
+                                <div className="p-2">
+                                    <div className="mb-4">
+                                        <h5 className="fw-bold mb-0 text-primary">Professional Credentials</h5>
+                                    </div>
+
+                                    {profile?.certifications && profile.certifications.length > 0 ? (
+                                        <Row className="g-4">
+                                            {profile.certifications.map((cert) => (
+                                                <Col md={6} key={cert.id}>
+                                                    <Card className="h-100 border-0 shadow-sm certification-card hover-lift">
+                                                        <Card.Body className="d-flex flex-column p-4">
+                                                            <div className="d-flex justify-content-between align-items-start mb-3">
+                                                                <div className="cert-icon-wrapper rounded-3 bg-primary bg-opacity-10 text-primary p-3">
+                                                                    <i className="fas fa-certificate fs-4"></i>
+                                                                </div>
+                                                                <div className="d-flex gap-2 cert-actions-wrapper">
+                                                                    <Button 
+                                                                        variant="link" 
+                                                                        className="text-primary p-0"
+                                                                        onClick={() => handleEditCertification(cert)}
+                                                                    >
+                                                                        <i className="fas fa-pencil-alt"></i>
+                                                                    </Button>
+                                                                    <Button 
+                                                                        variant="link" 
+                                                                        className="text-danger p-0"
+                                                                        onClick={() => handleDeleteCertification(cert.id)}
+                                                                    >
+                                                                        <i className="fas fa-trash-alt"></i>
+                                                                    </Button>
+                                                                </div>
+                                                            </div>
+                                                            <h5 className="fw-bold mb-1">{cert.name}</h5>
+                                                            <p className="text-muted small mb-3">{cert.issuingOrganization}</p>
+                                                            
+                                                            <div className="mt-auto pt-3 border-top d-flex justify-content-between align-items-center">
+                                                                <div className="small text-muted">
+                                                                    <i className="far fa-calendar-alt me-2"></i>
+                                                                    Issued: {new Date(cert.issueDate).toLocaleDateString()}
+                                                                </div>
+                                                                {cert.credentialUrl && (
+                                                                    <a 
+                                                                        href={`http://localhost:5227${cert.credentialUrl}`} 
+                                                                        target="_blank" 
+                                                                        rel="noopener noreferrer"
+                                                                        className="btn btn-premium-view-cert btn-sm px-3"
+                                                                    >
+                                                                        View Certificate
+                                                                    </a>
+                                                                )}
+                                                            </div>
+                                                            {cert.credentialId && (
+                                                                <div className="mt-2 small text-muted">
+                                                                    <strong>Credential ID:</strong> {cert.credentialId}
+                                                                </div>
+                                                            )}
+                                                        </Card.Body>
+                                                    </Card>
+                                                </Col>
+                                            ))}
+                                        </Row>
+                                    ) : (
+                                        <div className="text-center py-5 timeline-empty-state rounded-4 border border-dashed">
+                                            <i className="fas fa-certificate fs-1 text-muted mb-3"></i>
+                                            <p className="text-muted mb-0">No certifications found.</p>
+                                            <Button variant="link" className="mt-2" onClick={() => setShowCertificationModal(true)}>Add your first certification</Button>
+                                        </div>
+                                    )}
                                 </div>
                             )}
                         </Card.Body>
@@ -986,6 +1290,310 @@ const Profile = () => {
                                 </Button>
                                 <Button variant="primary" type="submit" disabled={isSubmitting} className="rounded-pill px-4">
                                     {isSubmitting ? 'Saving...' : (editingExperience ? 'Update Experience' : 'Save Experience')}
+                                </Button>
+                            </Modal.Footer>
+                        </Form>
+                    )}
+                </Formik>
+            </Modal>
+
+            {/* Education Modal */}
+            <Modal show={showEducationModal} onHide={() => {
+                setShowEducationModal(false);
+                setEditingEducation(null);
+            }} centered size="lg">
+                <Modal.Header closeButton className="px-4 pt-4">
+                    <Modal.Title className="fw-bold">{editingEducation ? 'Edit Education' : 'Add Education'}</Modal.Title>
+                </Modal.Header>
+                <Formik
+                    initialValues={educationInitialValues}
+                    validationSchema={Yup.object({
+                        institution: Yup.string().required('Required'),
+                        degree: Yup.string().required('Required'),
+                        startDate: Yup.date().required('Required')
+                    })}
+                    onSubmit={handleSaveEducation}
+                    enableReinitialize
+                >
+                    {({ values, errors, touched, handleChange, handleBlur, handleSubmit, isSubmitting, setFieldValue }) => (
+                        <Form onSubmit={handleSubmit}>
+                            <Modal.Body className="p-4">
+                                <Row className="g-3">
+                                    <Col md={12}>
+                                        <Form.Group className="mb-3">
+                                            <Form.Label className="small fw-bold">Institution / University</Form.Label>
+                                            <Form.Control 
+                                                name="institution"
+                                                value={values.institution}
+                                                onChange={handleChange}
+                                                isInvalid={touched.institution && errors.institution}
+                                                placeholder="e.g. Stanford University"
+                                            />
+                                        </Form.Group>
+                                    </Col>
+                                    <Col md={6}>
+                                        <Form.Group className="mb-3">
+                                            <Form.Label className="small fw-bold">Degree</Form.Label>
+                                            <Form.Control 
+                                                name="degree"
+                                                value={values.degree}
+                                                onChange={handleChange}
+                                                isInvalid={touched.degree && errors.degree}
+                                                placeholder="e.g. Bachelor of Science"
+                                            />
+                                        </Form.Group>
+                                    </Col>
+                                    <Col md={6}>
+                                        <Form.Group className="mb-3">
+                                            <Form.Label className="small fw-bold">Field of Study</Form.Label>
+                                            <Form.Control 
+                                                name="fieldOfStudy"
+                                                value={values.fieldOfStudy}
+                                                onChange={handleChange}
+                                                placeholder="e.g. Computer Science"
+                                            />
+                                        </Form.Group>
+                                    </Col>
+                                    <Col md={4}>
+                                        <Form.Group className="mb-3">
+                                            <Form.Label className="small fw-bold">From Date</Form.Label>
+                                            <div className="datepicker-wrapper">
+                                                <DatePicker
+                                                    selected={values.startDate}
+                                                    onChange={(date) => setFieldValue('startDate', date)}
+                                                    className="form-control"
+                                                    dateFormat="yyyy"
+                                                    showYearPicker
+                                                />
+                                                <i className="far fa-calendar-alt text-muted"></i>
+                                            </div>
+                                        </Form.Group>
+                                    </Col>
+                                    <Col md={4}>
+                                        <Form.Group className="mb-3">
+                                            <Form.Label className="small fw-bold">To Date (Expected)</Form.Label>
+                                            <div className="datepicker-wrapper">
+                                                <DatePicker
+                                                    selected={values.endDate}
+                                                    onChange={(date) => setFieldValue('endDate', date)}
+                                                    className="form-control"
+                                                    dateFormat="yyyy"
+                                                    showYearPicker
+                                                    placeholderText="Select Year"
+                                                />
+                                                <i className="far fa-calendar-alt text-muted"></i>
+                                            </div>
+                                        </Form.Group>
+                                    </Col>
+                                    <Col md={4}>
+                                        <Form.Group className="mb-3">
+                                            <Form.Label className="small fw-bold">Grade / CGPA (%)</Form.Label>
+                                            <Form.Control 
+                                                type="number"
+                                                step="0.01"
+                                                name="grade"
+                                                value={values.grade}
+                                                onChange={handleChange}
+                                                placeholder="e.g. 85.50"
+                                            />
+                                        </Form.Group>
+                                    </Col>
+                                </Row>
+                            </Modal.Body>
+                            <Modal.Footer className="border-0 px-4 pb-4">
+                                <Button variant="light" onClick={() => setShowEducationModal(false)} className="rounded-pill px-4">Cancel</Button>
+                                <Button variant="primary" type="submit" disabled={isSubmitting} className="rounded-pill px-4">
+                                    {isSubmitting ? 'Saving...' : 'Save Education'}
+                                </Button>
+                            </Modal.Footer>
+                        </Form>
+                    )}
+                </Formik>
+            </Modal>
+
+            {/* Certification Modal */}
+            <Modal show={showCertificationModal} onHide={() => {
+                setShowCertificationModal(false);
+                setEditingCertification(null);
+            }} centered size="lg">
+                <Modal.Header closeButton className="px-4 pt-4">
+                    <Modal.Title className="fw-bold">{editingCertification ? 'Edit Certification' : 'Add Certification'}</Modal.Title>
+                </Modal.Header>
+                <Formik
+                    initialValues={certificationInitialValues}
+                    validationSchema={Yup.object({
+                        name: Yup.string().required('Required'),
+                        issuingOrganization: Yup.string().required('Required'),
+                        issueDate: Yup.date().required('Required')
+                    })}
+                    onSubmit={handleSaveCertification}
+                    enableReinitialize
+                >
+                    {({ values, errors, touched, handleChange, handleBlur, handleSubmit, isSubmitting, setFieldValue }) => (
+                        <Form onSubmit={handleSubmit}>
+                            <Modal.Body className="p-4">
+                                <Row className="g-3">
+                                    <Col md={12}>
+                                        <Form.Group className="mb-3">
+                                            <Form.Label className="small fw-bold">Certification Name</Form.Label>
+                                            <Form.Control 
+                                                name="name"
+                                                value={values.name}
+                                                onChange={handleChange}
+                                                isInvalid={touched.name && errors.name}
+                                                placeholder="e.g. AWS Certified Solutions Architect"
+                                            />
+                                        </Form.Group>
+                                    </Col>
+                                    <Col md={12}>
+                                        <Form.Group className="mb-3">
+                                            <Form.Label className="small fw-bold">Issuing Organization</Form.Label>
+                                            <Form.Control 
+                                                name="issuingOrganization"
+                                                value={values.issuingOrganization}
+                                                onChange={handleChange}
+                                                isInvalid={touched.issuingOrganization && errors.issuingOrganization}
+                                                placeholder="e.g. Amazon Web Services (AWS)"
+                                            />
+                                        </Form.Group>
+                                    </Col>
+                                    <Col md={6}>
+                                        <Form.Group className="mb-3">
+                                            <Form.Label className="small fw-bold">Issue Date</Form.Label>
+                                            <div className="datepicker-wrapper">
+                                                <DatePicker
+                                                    selected={values.issueDate}
+                                                    onChange={(date) => setFieldValue('issueDate', date)}
+                                                    className="form-control"
+                                                    dateFormat="MMMM d, yyyy"
+                                                />
+                                                <i className="far fa-calendar-alt text-muted"></i>
+                                            </div>
+                                        </Form.Group>
+                                    </Col>
+                                    <Col md={6}>
+                                        <Form.Group className="mb-3">
+                                            <Form.Label className="small fw-bold">Expiry Date (Optional)</Form.Label>
+                                            <div className="datepicker-wrapper">
+                                                <DatePicker
+                                                    selected={values.expiryDate}
+                                                    onChange={(date) => setFieldValue('expiryDate', date)}
+                                                    className="form-control"
+                                                    dateFormat="MMMM d, yyyy"
+                                                    placeholderText="Does not expire"
+                                                />
+                                                <i className="far fa-calendar-alt text-muted"></i>
+                                            </div>
+                                        </Form.Group>
+                                    </Col>
+                                    <Col md={6}>
+                                        <Form.Group className="mb-3">
+                                            <Form.Label className="small fw-bold">Credential ID</Form.Label>
+                                            <Form.Control 
+                                                name="credentialId"
+                                                value={values.credentialId}
+                                                onChange={handleChange}
+                                                placeholder="Credential ID or Number"
+                                            />
+                                        </Form.Group>
+                                    </Col>
+                                    <Col md={6}>
+                                        <Form.Group className="mb-3">
+                                            <Form.Label className="small fw-bold">Credential URL (Optional)</Form.Label>
+                                            <Form.Control 
+                                                name="credentialUrl"
+                                                value={values.credentialUrl}
+                                                onChange={handleChange}
+                                                placeholder="Link to verify credential"
+                                            />
+                                        </Form.Group>
+                                    </Col>
+                                    <Col md={12}>
+                                        <div 
+                                            className={`cert-upload-section p-4 rounded-4 border border-dashed text-center bg-transparent mt-2 ${isDragging ? 'dragging' : ''}`}
+                                            onDragOver={handleDragOver}
+                                            onDragLeave={handleDragLeave}
+                                            onDrop={(e) => handleDrop(e, setFieldValue)}
+                                        >
+                                            <i className={`fas ${isUploadingFile ? 'fa-spinner fa-spin' : 'fa-cloud-upload-alt'} fs-2 text-primary mb-3`}></i>
+                                            <h6 className="fw-bold">Upload Certificate Copy</h6>
+                                            <p className="text-secondary small mb-3">Drag and drop or click the button to upload a PDF or Image</p>
+                                            
+                                             {values.credentialUrl && values.credentialUrl.includes('/uploads/') ? (
+                                                <div className="uploaded-file-info d-flex flex-column align-items-center justify-content-center bg-success bg-opacity-10 rounded-4 p-4 border border-success-subtle mx-auto" style={{maxWidth: '450px'}}>
+                                                    <div className="cert-preview-wrapper mb-3 position-relative">
+                                                        {values.credentialUrl.match(/\.(jpg|jpeg|png|gif|webp)$/i) ? (
+                                                            <div className="cert-image-preview shadow-sm rounded-3 overflow-hidden" style={{width: '120px', height: '120px', background: '#fff'}}>
+                                                                 <img 
+                                                                    src={values.credentialUrl.startsWith('http') ? values.credentialUrl : `http://localhost:5227${values.credentialUrl}`} 
+                                                                    alt="Certificate Preview" 
+                                                                    style={{width: '100%', height: '100%', objectFit: 'cover'}}
+                                                                    onError={(e) => {
+                                                                        e.target.onerror = null;
+                                                                        e.target.src = 'https://via.placeholder.com/120x120?text=No+Preview';
+                                                                    }}
+                                                                />
+                                                            </div>
+                                                        ) : (
+                                                            <div className="cert-file-icon shadow-sm" style={{width: '80px', height: '80px', fontSize: '2.5rem'}}>
+                                                                <i className={`fas ${values.credentialUrl.toLowerCase().endsWith('.pdf') ? 'fa-file-pdf text-danger' : 'fa-file-alt text-primary'}`}></i>
+                                                            </div>
+                                                        )}
+                                                        <Badge bg="success" className="position-absolute bottom-0 end-0 translate-middle-x mb-n2 me-n2 rounded-circle p-2 shadow-sm border border-white">
+                                                            <i className="fas fa-check"></i>
+                                                        </Badge>
+                                                    </div>
+                                                    
+                                                    <div className="text-center w-100 overflow-hidden">
+                                                        <div className="fw-bold text-success mb-1 text-truncate px-2">
+                                                            {values.credentialUrl.split('/').pop()}
+                                                        </div>
+                                                        <div className="d-flex align-items-center justify-content-center gap-3 mt-2">
+                                                            <a 
+                                                                href={values.credentialUrl.startsWith('http') ? values.credentialUrl : `http://localhost:5227${values.credentialUrl}`} 
+                                                                target="_blank" 
+                                                                rel="noopener noreferrer" 
+                                                                className="btn btn-sm btn-outline-success rounded-pill px-3"
+                                                            >
+                                                                <i className="fas fa-external-link-alt me-1"></i> View Full
+                                                            </a>
+                                                            <button 
+                                                                type="button" 
+                                                                className="btn btn-sm btn-outline-danger rounded-pill px-3" 
+                                                                onClick={() => setFieldValue('credentialUrl', '')}
+                                                            >
+                                                                <i className="fas fa-trash-alt me-1"></i> Remove
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ) : (
+                                                <div className="d-flex flex-column align-items-center">
+                                                    <input 
+                                                        type="file" 
+                                                        id="certFileUpload" 
+                                                        hidden 
+                                                        onChange={(e) => handleCertificateFileUpload(e, setFieldValue)} 
+                                                    />
+                                                    <Button 
+                                                        variant="primary" 
+                                                        size="sm" 
+                                                        className="rounded-pill px-4" 
+                                                        onClick={() => document.getElementById('certFileUpload').click()}
+                                                        disabled={isUploadingFile}
+                                                    >
+                                                        {isUploadingFile ? 'Uploading...' : 'Choose File'}
+                                                    </Button>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </Col>
+                                </Row>
+                            </Modal.Body>
+                            <Modal.Footer className="border-0 px-4 pb-4">
+                                <Button variant="light" onClick={() => setShowCertificationModal(false)} className="rounded-pill px-4">Cancel</Button>
+                                <Button variant="primary" type="submit" disabled={isSubmitting} className="rounded-pill px-4">
+                                    {isSubmitting ? 'Saving...' : 'Save Certification'}
                                 </Button>
                             </Modal.Footer>
                         </Form>

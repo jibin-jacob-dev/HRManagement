@@ -164,6 +164,38 @@ export const employeeProfileService = {
         const response = await api.put(`/employeeprofile/experience/${id}`, data);
         return response.data;
     },
+    addEducation: async (data) => {
+        const response = await api.post('/employeeprofile/education', data);
+        return response.data;
+    },
+    deleteEducation: async (id) => {
+        const response = await api.delete(`/employeeprofile/remove-education/${id}`);
+        return response.data;
+    },
+    updateEducation: async (id, data) => {
+        const response = await api.put(`/employeeprofile/education/${id}`, data);
+        return response.data;
+    },
+    addCertification: async (data) => {
+        const response = await api.post('/employeeprofile/certification', data);
+        return response.data;
+    },
+    deleteCertification: async (id) => {
+        const response = await api.delete(`/employeeprofile/remove-certification/${id}`);
+        return response.data;
+    },
+    updateCertification: async (id, data) => {
+        const response = await api.put(`/employeeprofile/certification/${id}`, data);
+        return response.data;
+    },
+    uploadCertificate: async (formData) => {
+        const response = await api.post('/employeeprofile/upload-certification', formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data'
+            }
+        });
+        return response.data;
+    },
     getEmployeeList: async () => {
         const response = await api.get('/employees/list');
         return response.data;
