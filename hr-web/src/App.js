@@ -17,6 +17,8 @@ import { MenuProvider } from './context/MenuContext';
 import Layout from './components/layout/Layout';
 import Profile from './pages/Profile';
 import EmployeeList from './pages/EmployeeList';
+import AttendanceManagement from './pages/AttendanceManagement';
+import LeaveManagement from './pages/LeaveManagement';
 
 // Simple component to protect routes
 const ProtectedRoute = ({ children }) => {
@@ -46,6 +48,8 @@ function App() {
                                             <Route path="/positions" element={<PositionManagement />} />
                                             <Route path="/levels" element={<LevelManagement />} />
                                             <Route path="/employees" element={<EmployeeList />} />
+                                            <Route path="/attendance" element={<AttendanceManagement />} />
+                                            <Route path="/leave-management" element={<LeaveManagement />} />
                                             <Route path="/profile" element={<Profile />} />
                                             <Route path="/profile/:userId" element={<Profile />} />
                                             <Route path="/" element={<Navigate to="/dashboard" />} />

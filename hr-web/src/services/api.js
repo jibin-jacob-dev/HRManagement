@@ -276,4 +276,62 @@ export const departmentService = {
     }
 };
 
+export const attendanceService = {
+    getAttendances: async (startDate, endDate) => {
+        const params = new URLSearchParams();
+        if (startDate) params.append('startDate', startDate);
+        if (endDate) params.append('endDate', endDate);
+        const response = await api.get(`/attendance?${params.toString()}`);
+        return response.data;
+    },
+    getAttendance: async (id) => {
+        const response = await api.get(`/attendance/${id}`);
+        return response.data;
+    },
+    createAttendance: async (attendance) => {
+        const response = await api.post('/attendance', attendance);
+        return response.data;
+    },
+    updateAttendance: async (id, attendance) => {
+        const response = await api.put(`/attendance/${id}`, attendance);
+        return response.data;
+    },
+    deleteAttendance: async (id) => {
+        const response = await api.delete(`/attendance/${id}`);
+        return response.data;
+    }
+};
+
+export const leaveService = {
+    getLeaves: async (status) => {
+        const params = status ? `?status=${status}` : '';
+        const response = await api.get(`/leave${params}`);
+        return response.data;
+    },
+    getLeave: async (id) => {
+        const response = await api.get(`/leave/${id}`);
+        return response.data;
+    },
+    createLeave: async (leave) => {
+        const response = await api.post('/leave', leave);
+        return response.data;
+    },
+    updateLeave: async (id, leave) => {
+        const response = await api.put(`/leave/${id}`, leave);
+        return response.data;
+    },
+    approveLeave: async (id, comments) => {
+        const response = await api.post(`/leave/${id}/approve`, { comments });
+        return response.data;
+    },
+    rejectLeave: async (id, comments) => {
+        const response = await api.post(`/leave/${id}/reject`, { comments });
+        return response.data;
+    },
+    deleteLeave: async (id) => {
+        const response = await api.delete(`/leave/${id}`);
+        return response.data;
+    }
+};
+
 export default api;
