@@ -7,6 +7,7 @@ import GridContainer from '../components/common/GridContainer';
 import alertService from '../services/alertService';
 import { ModuleRegistry, AllCommunityModule } from 'ag-grid-community';
 import Swal from 'sweetalert2';
+import { usePermission } from '../hooks/usePermission';
 
 // Custom Styles
 import './LevelManagement.css';
@@ -15,6 +16,7 @@ import './LevelManagement.css';
 ModuleRegistry.registerModules([AllCommunityModule]);
 
 const LevelManagement = () => {
+    const { canEdit } = usePermission('/levels');
     const [levels, setLevels] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
@@ -111,26 +113,30 @@ const LevelManagement = () => {
             filter: false,
             cellRenderer: (params) => (
                 <div className="d-flex h-100 align-items-center justify-content-center gap-2">
-                    <Button 
-                        variant="link" 
-                        className="p-0 grid-action-btn text-primary" 
-                        onClick={() => handleEdit(params.data)}
-                        title="Edit Level"
-                    >
-                        <i className="fas fa-edit"></i>
-                    </Button>
-                    <Button 
-                        variant="link" 
-                        className="p-0 grid-action-btn text-danger" 
-                        onClick={() => handleDelete(params.data)}
-                        title="Delete Level"
-                    >
-                        <i className="fas fa-trash-alt"></i>
-                    </Button>
+                    {canEdit && (
+                        <>
+                            <Button 
+                                variant="link" 
+                                className="p-0 grid-action-btn text-primary" 
+                                onClick={() => handleEdit(params.data)}
+                                title="Edit Level"
+                            >
+                                <i className="fas fa-edit"></i>
+                            </Button>
+                            <Button 
+                                variant="link" 
+                                className="p-0 grid-action-btn text-danger" 
+                                onClick={() => handleDelete(params.data)}
+                                title="Delete Level"
+                            >
+                                <i className="fas fa-trash-alt"></i>
+                            </Button>
+                        </>
+                    )}
                 </div>
             )
         }
-    ], []);
+    ], [canEdit]);
 
     return (
         <Container fluid className="level-management-container page-animate p-0">
@@ -150,13 +156,15 @@ const LevelManagement = () => {
                             onChange={(e) => setQuickFilterText(e.target.value)}
                         />
                     </div>
-                    <Button variant="primary" className="px-4 shadow-sm" onClick={handleAdd}>
-                        <i className="fas fa-plus me-2"></i> Add Level
-                    </Button>
+                    {canEdit && (
+                        <Button variant="primary" className="px-4 shadow-sm" onClick={handleAdd}>
+                            <i className="fas fa-plus me-2"></i> Add Level
+                        </Button>
+                    )}
                 </div>
             </div>
 
-            <GridContainer height="600px">
+            <GridContainer>
                 <AgGridReact
                     rowData={levels}
                     columnDefs={columnDefs}

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { usePermission } from '../hooks/usePermission';
 import { Container, Card, Button, Modal, Form, Badge } from 'react-bootstrap';
 import { AgGridReact } from 'ag-grid-react';
 import { ModuleRegistry, AllCommunityModule } from 'ag-grid-community';
@@ -16,6 +17,7 @@ ModuleRegistry.registerModules([AllCommunityModule]);
 
 const DepartmentManagement = () => {
     const { gridTheme, defaultColDef, suppressCellFocus } = useGridSettings();
+    const { canEdit } = usePermission('/departments');
     const [departments, setDepartments] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
@@ -151,26 +153,30 @@ const DepartmentManagement = () => {
             filter: false,
             cellRenderer: (params) => (
                 <div className="d-flex h-100 align-items-center justify-content-center gap-2">
-                    <Button 
-                        variant="link" 
-                        className="p-0 grid-action-btn text-primary" 
-                        onClick={() => handleEdit(params.data)}
-                        title="Edit Department"
-                    >
-                        <i className="fas fa-edit"></i>
-                    </Button>
-                    <Button 
-                        variant="link" 
-                        className="p-0 grid-action-btn text-danger" 
-                        onClick={() => handleDelete(params.data)}
-                        title="Delete Department"
-                    >
-                        <i className="fas fa-trash-alt"></i>
-                    </Button>
+                    {canEdit && (
+                        <>
+                            <Button 
+                                variant="link" 
+                                className="p-0 grid-action-btn text-primary" 
+                                onClick={() => handleEdit(params.data)}
+                                title="Edit Department"
+                            >
+                                <i className="fas fa-edit"></i>
+                            </Button>
+                            <Button 
+                                variant="link" 
+                                className="p-0 grid-action-btn text-danger" 
+                                onClick={() => handleDelete(params.data)}
+                                title="Delete Department"
+                            >
+                                <i className="fas fa-trash-alt"></i>
+                            </Button>
+                        </>
+                    )}
                 </div>
             )
         }
-    ], []);
+    ], [canEdit]);
 
     return (
         <Container fluid className="department-management-container page-animate p-0">
@@ -190,10 +196,12 @@ const DepartmentManagement = () => {
                             onChange={(e) => setQuickFilterText(e.target.value)}
                         />
                     </div>
-                    <Button variant="primary" className="px-4 shadow-sm" onClick={handleAdd}>
-                        <i className="fas fa-plus me-2"></i>
-                        Add Department
-                    </Button>
+                    {canEdit && (
+                        <Button variant="primary" className="px-4 shadow-sm" onClick={handleAdd}>
+                            <i className="fas fa-plus me-2"></i>
+                            Add Department
+                        </Button>
+                    )}
                 </div>
             </div>
 

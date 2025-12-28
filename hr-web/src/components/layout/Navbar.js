@@ -66,7 +66,17 @@ const CustomNavbar = ({ toggleSidebar, isCollapsed }) => {
                                  style={{ width: '38px', height: '38px', fontWeight: 'bold', fontSize: '0.9rem' }}
                                  title={`${user?.firstName} ${user?.lastName}`}
                             >
-                                {getInitials()}
+                                {user?.profilePicture ? (
+                                    <img 
+                                        src={`http://localhost:5227${user.profilePicture}`} 
+                                        alt="Profile" 
+                                        className="rounded-circle"
+                                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                        onError={(e) => { e.target.style.display = 'none'; e.target.parentElement.innerText = getInitials(); }}
+                                    />
+                                ) : (
+                                    getInitials()
+                                )}
                             </div>
                         </Dropdown.Toggle>
                     <Dropdown.Menu className="shadow-lg border-0 mt-3 p-2" style={{ minWidth: '320px', borderRadius: '12px' }}>

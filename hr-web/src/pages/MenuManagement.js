@@ -7,6 +7,7 @@ import { useMenu } from '../context/MenuContext';
 import { useGridSettings } from '../hooks/useGridSettings';
 import GridContainer from '../components/common/GridContainer';
 import alertService from '../services/alertService';
+import { usePermission } from '../hooks/usePermission';
 
 // Custom Styles
 import './MenuManagement.css';
@@ -16,6 +17,7 @@ ModuleRegistry.registerModules([AllCommunityModule]);
 
 const MenuManagement = () => {
     const { refreshMenus } = useMenu();
+    const { canEdit } = usePermission('/menu-management');
     const { gridTheme, defaultColDef, suppressCellFocus } = useGridSettings();
     const [menus, setMenus] = useState([]);
     const [quickFilterText, setQuickFilterText] = useState('');
@@ -170,26 +172,30 @@ const MenuManagement = () => {
             filter: false,
             cellRenderer: (params) => (
                 <div className="d-flex gap-2 justify-content-center h-100 align-items-center">
-                    <Button 
-                        variant="link" 
-                        className="p-0 text-primary" 
-                        onClick={() => handleOpenModal(params.data)}
-                        title="Edit"
-                    >
-                        <i className="fas fa-edit"></i>
-                    </Button>
-                    <Button 
-                        variant="link" 
-                        className="p-0 text-danger" 
-                        onClick={() => handleDelete(params.data)}
-                        title="Delete"
-                    >
-                        <i className="fas fa-trash-alt"></i>
-                    </Button>
+                    {canEdit && (
+                        <>
+                            <Button 
+                                variant="link" 
+                                className="p-0 text-primary" 
+                                onClick={() => handleOpenModal(params.data)}
+                                title="Edit"
+                            >
+                                <i className="fas fa-edit"></i>
+                            </Button>
+                            <Button 
+                                variant="link" 
+                                className="p-0 text-danger" 
+                                onClick={() => handleDelete(params.data)}
+                                title="Delete"
+                            >
+                                <i className="fas fa-trash-alt"></i>
+                            </Button>
+                        </>
+                    )}
                 </div>
             )
         }
-    ], [menus]);
+    ], [menus, canEdit]);
 
     return (
         <Container fluid className="menu-management-container page-animate p-0">
@@ -209,14 +215,16 @@ const MenuManagement = () => {
                                 onChange={(e) => setQuickFilterText(e.target.value)}
                             />
                         </div>
-                        <Button variant="primary" className="px-4 shadow-sm" onClick={() => handleOpenModal()}>
-                            <i className="fas fa-plus me-2"></i>
-                            Add Menu
-                        </Button>
+                        {canEdit && (
+                            <Button variant="primary" className="px-4 shadow-sm" onClick={() => handleOpenModal()}>
+                                <i className="fas fa-plus me-2"></i>
+                                Add Menu
+                            </Button>
+                        )}
                     </div>
                 </div>
 
-                <GridContainer height="600px">
+                <GridContainer>
                     <AgGridReact
                         rowData={menus}
                         columnDefs={columnDefs}
@@ -303,7 +311,9 @@ const MenuManagement = () => {
                     </Modal.Body>
                     <Modal.Footer>
                         <Button variant="secondary" onClick={() => setShowModal(false)}>Cancel</Button>
-                        <Button variant="primary" onClick={handleSubmit}>Save Menu</Button>
+                        <Button variant="primary" onClick={handleSubmit}>
+                            {editingMenu ? 'Save Changes' : 'Create Menu'}
+                        </Button>
                     </Modal.Footer>
                 </Modal>
             </Container>

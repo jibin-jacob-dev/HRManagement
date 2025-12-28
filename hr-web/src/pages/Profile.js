@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Container, Row, Col, Card, Nav, Tab, Form, Button, InputGroup, Badge, Spinner, Modal, Dropdown } from 'react-bootstrap';
+import { useNavigate, useParams } from 'react-router-dom';
 import { Formik } from 'formik';
 import * as Yup from 'yup';
 import { employeeProfileService, authService, departmentService, positionService, levelService } from '../services/api';
@@ -9,10 +10,13 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import Select, { components } from 'react-select';
 import { useTheme } from '../context/ThemeContext';
+import { usePermission } from '../hooks/usePermission';
 import './Profile.css';
 
 const Profile = () => {
+    const { userId } = useParams();
     const { isDarkMode } = useTheme();
+    const navigate = useNavigate();
     const [profile, setProfile] = useState(null);
     const [loading, setLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
@@ -26,12 +30,19 @@ const Profile = () => {
     const [certificateFile, setCertificateFile] = useState(null);
     const [isUploadingFile, setIsUploadingFile] = useState(false);
     const [isDragging, setIsDragging] = useState(false);
+    const currentUser = authService.getCurrentUser();
+    const { canEdit } = usePermission('Employees');
     const isAdmin = authService.isAdmin();
+
+    // Read-only logic:
+    // If viewing another user (userId different from currentUser), permission depends on 'canEdit' (Employees permission).
+    // If viewing self, typically allowed to edit (or handled by specific My Profile permissions, assuming Full for now).
+    const isViewingOther = userId && userId !== currentUser?.id;
+    const isReadOnly = isViewingOther ? !canEdit : false;
 
     // Memoized initial values for modals to prevent Formik reset during re-renders (e.g. file uploads)
     const educationInitialValues = useMemo(() => ({
         institution: editingEducation?.institution || '',
-        degree: editingEducation?.degree || '',
         fieldOfStudy: editingEducation?.fieldOfStudy || '',
         startDate: editingEducation?.startDate ? new Date(editingEducation.startDate) : new Date(),
         endDate: editingEducation?.endDate ? new Date(editingEducation.endDate) : null,
@@ -84,12 +95,21 @@ const Profile = () => {
     const fetchProfile = async () => {
         try {
             setLoading(true);
-            const data = await employeeProfileService.getProfile();
-            console.log('Current experiences:', data.experiences);
+            let data;
+            if (userId) {
+                data = await employeeProfileService.getProfileByUserId(userId);
+            } else {
+                data = await employeeProfileService.getProfile();
+            }
+            console.log('Fetched profile:', data);
             setProfile(data);
         } catch (error) {
             console.error('Error fetching profile:', error);
             alertService.showToast('Failed to load profile', 'error');
+            if (userId) {
+                // If failed to load specific user, maybe redirect or show specific error
+                navigate('/employees');
+            }
         } finally {
             setLoading(false);
         }
@@ -505,6 +525,17 @@ const Profile = () => {
 
     return (
         <Container fluid className="profile-container pb-5">
+            {userId && (
+                <div className="mb-3">
+                    <Button 
+                        variant="link" 
+                        className="text-decoration-none p-0 d-flex align-items-center gap-2 text-secondary"
+                        onClick={() => navigate('/employees')}
+                    >
+                        <i className="fas fa-arrow-left"></i> Back to Employee List
+                    </Button>
+                </div>
+            )}
             {/* Header Section */}
             <div className="card profile-header border-0 shadow-sm mb-4">
                 <div className="profile-banner"></div>
@@ -515,9 +546,11 @@ const Profile = () => {
                                 src={profile?.profilePicture ? `http://localhost:5227${profile.profilePicture}` : '/default-avatar.png'} 
                                 alt="Profile" 
                             />
-                            <div className="edit-overlay" onClick={() => document.getElementById('profileUpload').click()}>
-                                <i className="fas fa-camera"></i>
-                            </div>
+                            {!isReadOnly && (
+                                <div className="edit-overlay" onClick={() => document.getElementById('profileUpload').click()}>
+                                    <i className="fas fa-camera"></i>
+                                </div>
+                            )}
                         </div>
                         <input 
                             type="file" 
@@ -595,7 +628,7 @@ const Profile = () => {
                                     {activeTab === 'study' && 'Education History'}
                                     {activeTab === 'certification' && 'Certifications'}
                                 </h4>
-                                {(activeTab === 'personal' || activeTab === 'professional') && (
+                                {((activeTab === 'personal' || activeTab === 'professional') && !isReadOnly) && (
                                     <button 
                                         type="submit" 
                                         form={activeTab === 'personal' ? "personalForm" : "professionalForm"}
@@ -607,7 +640,7 @@ const Profile = () => {
                                         <span>{isSaving ? 'Saving...' : 'Save Changes'}</span>
                                     </button>
                                 )}
-                                {activeTab === 'experience' && (
+                                {activeTab === 'experience' && !isReadOnly && (
                                     <button 
                                         onClick={() => {
                                             setEditingExperience(null);
@@ -619,7 +652,7 @@ const Profile = () => {
                                         <span>Add Experience</span>
                                     </button>
                                 )}
-                                {activeTab === 'study' && (
+                                {activeTab === 'study' && !isReadOnly && (
                                     <button 
                                         onClick={() => {
                                             setEditingEducation(null);
@@ -631,7 +664,7 @@ const Profile = () => {
                                         <span>Add Education</span>
                                     </button>
                                 )}
-                                {activeTab === 'certification' && (
+                                {activeTab === 'certification' && !isReadOnly && (
                                     <button 
                                         onClick={() => {
                                             setEditingCertification(null);
@@ -680,7 +713,7 @@ const Profile = () => {
                                                             onChange={handleChange}
                                                             onBlur={handleBlur}
                                                             isInvalid={touched.firstName && !!errors.firstName}
-                                                            readOnly={!isAdmin}
+                                                            readOnly={isReadOnly || !isAdmin}
                                                             title={!isAdmin ? "Only Admin can edit name" : ""}
                                                         />
                                                         <Form.Control.Feedback type="invalid">{errors.firstName}</Form.Control.Feedback>
@@ -695,7 +728,7 @@ const Profile = () => {
                                                             onChange={handleChange}
                                                             onBlur={handleBlur}
                                                             isInvalid={touched.lastName && !!errors.lastName}
-                                                            readOnly={!isAdmin}
+                                                            readOnly={isReadOnly || !isAdmin}
                                                             title={!isAdmin ? "Only Admin can edit name" : ""}
                                                         />
                                                         <Form.Control.Feedback type="invalid">{errors.lastName}</Form.Control.Feedback>
@@ -710,6 +743,7 @@ const Profile = () => {
                                                             onChange={handleChange}
                                                             onBlur={handleBlur}
                                                             isInvalid={touched.personalEmail && !!errors.personalEmail}
+                                                            readOnly={isReadOnly}
                                                         />
                                                     </Form.Group>
                                                 </Col>
@@ -721,6 +755,7 @@ const Profile = () => {
                                                             value={values.phone}
                                                             onChange={handleChange}
                                                             onBlur={handleBlur}
+                                                            readOnly={isReadOnly}
                                                         />
                                                     </Form.Group>
                                                 </Col>
@@ -741,6 +776,8 @@ const Profile = () => {
                                                                 showYearDropdown
                                                                 dropdownMode="select"
                                                                 scrollableYearDropdown={false}
+                                                                readOnly={isReadOnly}
+                                                                disabled={isReadOnly}
                                                             />
                                                             <i className="fas fa-calendar-alt position-absolute end-0 top-50 translate-middle-y me-3 pointer-events-none opacity-50 text-primary"></i>
                                                         </div>
@@ -749,7 +786,7 @@ const Profile = () => {
                                                 <Col md={4}>
                                                     <Form.Group>
                                                         <Form.Label className="text-muted small fw-bold">Gender</Form.Label>
-                                                        <Form.Select name="gender" value={values.gender} onChange={handleChange}>
+                                                        <Form.Select name="gender" value={values.gender} onChange={handleChange} disabled={isReadOnly}>
                                                             <option value="">Select Gender</option>
                                                             <option value="Male">Male</option>
                                                             <option value="Female">Female</option>
@@ -760,7 +797,7 @@ const Profile = () => {
                                                 <Col md={4}>
                                                     <Form.Group>
                                                         <Form.Label className="text-muted small fw-bold">Marital Status</Form.Label>
-                                                        <Form.Select name="maritalStatus" value={values.maritalStatus} onChange={handleChange}>
+                                                        <Form.Select name="maritalStatus" value={values.maritalStatus} onChange={handleChange} disabled={isReadOnly}>
                                                             <option value="">Select Status</option>
                                                             <option value="Single">Single</option>
                                                             <option value="Married">Married</option>
@@ -776,6 +813,7 @@ const Profile = () => {
                                                             name="nationality"
                                                             value={values.nationality}
                                                             onChange={handleChange}
+                                                            readOnly={isReadOnly}
                                                         />
                                                     </Form.Group>
                                                 </Col>
@@ -786,6 +824,7 @@ const Profile = () => {
                                                             name="bloodGroup"
                                                             value={values.bloodGroup}
                                                             onChange={handleChange}
+                                                            readOnly={isReadOnly}
                                                         />
                                                     </Form.Group>
                                                 </Col>
@@ -800,25 +839,26 @@ const Profile = () => {
                                                             name="address"
                                                             value={values.address}
                                                             onChange={handleChange}
+                                                            readOnly={isReadOnly}
                                                         />
                                                     </Form.Group>
                                                 </Col>
                                                 <Col md={4}>
                                                     <Form.Group>
                                                         <Form.Label className="text-muted small fw-bold">City</Form.Label>
-                                                        <Form.Control name="city" value={values.city} onChange={handleChange} />
+                                                        <Form.Control name="city" value={values.city} onChange={handleChange} readOnly={isReadOnly} />
                                                     </Form.Group>
                                                 </Col>
                                                 <Col md={4}>
                                                     <Form.Group>
                                                         <Form.Label className="text-muted small fw-bold">State/Province</Form.Label>
-                                                        <Form.Control name="state" value={values.state} onChange={handleChange} />
+                                                        <Form.Control name="state" value={values.state} onChange={handleChange} readOnly={isReadOnly} />
                                                     </Form.Group>
                                                 </Col>
                                                 <Col md={4}>
                                                     <Form.Group>
                                                         <Form.Label className="text-muted small fw-bold">Zip Code</Form.Label>
-                                                        <Form.Control name="zipCode" value={values.zipCode} onChange={handleChange} />
+                                                        <Form.Control name="zipCode" value={values.zipCode} onChange={handleChange} readOnly={isReadOnly} />
                                                     </Form.Group>
                                                 </Col>
                                                 {/* Button removed from bottom */}
@@ -857,7 +897,7 @@ const Profile = () => {
                                                                 setFieldValue('jobTitle', opt ? opt.label : '');
                                                             }}
                                                             styles={customSelectStyles}
-                                                            isDisabled={!isAdmin}
+                                                            isDisabled={isReadOnly || !isAdmin}
                                                             placeholder="Search and select position..."
                                                             isClearable
                                                         />
@@ -872,7 +912,7 @@ const Profile = () => {
                                                             value={departments.map(dept => ({ value: dept.departmentId, label: dept.departmentName })).find(opt => opt.value === values.departmentId)}
                                                             onChange={(opt) => setFieldValue('departmentId', opt ? opt.value : '')}
                                                             styles={customSelectStyles}
-                                                            isDisabled={!isAdmin}
+                                                            isDisabled={isReadOnly || !isAdmin}
                                                             placeholder="Select Department"
                                                             isClearable
                                                         />
@@ -886,7 +926,7 @@ const Profile = () => {
                                                             value={levels.map(lvl => ({ value: lvl.levelId, label: lvl.levelName })).find(opt => opt.value === values.levelId)}
                                                             onChange={(opt) => setFieldValue('levelId', opt ? opt.value : '')}
                                                             styles={customSelectStyles}
-                                                            isDisabled={!isAdmin}
+                                                            isDisabled={isReadOnly || !isAdmin}
                                                             placeholder="Select Level"
                                                             isClearable
                                                         />
@@ -903,7 +943,7 @@ const Profile = () => {
                                                                 name="salary"
                                                                 value={values.salary}
                                                                 onChange={handleChange}
-                                                                readOnly={!isAdmin}
+                                                                readOnly={isReadOnly || !isAdmin}
                                                                 className="border-start-0"
                                                             />
                                                         </InputGroup>
@@ -916,7 +956,7 @@ const Profile = () => {
                                                             name="employmentStatus" 
                                                             value={values.employmentStatus} 
                                                             onChange={handleChange}
-                                                            disabled={!isAdmin}
+                                                            disabled={isReadOnly || !isAdmin}
                                                         >
                                                             <option value="Active">Active</option>
                                                             <option value="On Leave">On Leave</option>
@@ -943,8 +983,8 @@ const Profile = () => {
                                                                 showYearDropdown
                                                                 dropdownMode="select"
                                                                 scrollableYearDropdown={false}
-                                                                readOnly={!isAdmin}
-                                                                disabled={!isAdmin}
+                                                                readOnly={isReadOnly || !isAdmin}
+                                                                disabled={isReadOnly || !isAdmin}
                                                             />
                                                             <i className="fas fa-calendar-alt opacity-50 text-secondary"></i>
                                                         </div>
@@ -968,7 +1008,7 @@ const Profile = () => {
                                                             onChange={(opt) => setFieldValue('reportsToId', opt ? opt.value : '')}
                                                             styles={customSelectStyles}
                                                             components={{ Option: EmployeeOption, SingleValue: EmployeeSingleValue }}
-                                                            isDisabled={!isAdmin}
+                                                            isDisabled={isReadOnly || !isAdmin}
                                                             placeholder="Select Manager"
                                                             isClearable
                                                         />
@@ -1002,20 +1042,24 @@ const Profile = () => {
                                                                 {exp.isCurrent ? ' Present' : ` ${new Date(exp.endDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}`}
                                                             </span>
                                                             <div className="d-flex gap-2">
-                                                                <Button 
-                                                                    variant="link" 
-                                                                    className="text-warning p-0 btn-edit-timeline"
-                                                                    onClick={() => handleEditExperience(exp)}
-                                                                >
-                                                                    <i className="fas fa-pencil-alt"></i>
-                                                                </Button>
-                                                                <Button 
-                                                                    variant="link" 
-                                                                    className="text-danger p-0 btn-delete-timeline"
-                                                                    onClick={() => handleDeleteExperience(exp.id)}
-                                                                >
-                                                                    <i className="fas fa-trash-alt"></i>
-                                                                </Button>
+                                                                {!isReadOnly && (
+                                                                    <>
+                                                                        <Button 
+                                                                            variant="link" 
+                                                                            className="text-warning p-0 btn-edit-timeline"
+                                                                            onClick={() => handleEditExperience(exp)}
+                                                                        >
+                                                                            <i className="fas fa-pencil-alt"></i>
+                                                                        </Button>
+                                                                        <Button 
+                                                                            variant="link" 
+                                                                            className="text-danger p-0 btn-delete-timeline"
+                                                                            onClick={() => handleDeleteExperience(exp.id)}
+                                                                        >
+                                                                            <i className="fas fa-trash-alt"></i>
+                                                                        </Button>
+                                                                    </>
+                                                                )}
                                                             </div>
                                                         </div>
                                                         <h6 className="timeline-title">{exp.designation}</h6>
@@ -1029,16 +1073,18 @@ const Profile = () => {
                                         <div className="text-center py-5 timeline-empty-state rounded-4 border border-dashed">
                                             <i className="fas fa-briefcase fs-1 text-muted mb-3"></i>
                                             <p className="text-muted mb-0">No experience records found.</p>
-                                            <Button 
-                                                variant="link" 
-                                                className="mt-2"
-                                                onClick={() => {
-                                                    setEditingExperience(null);
-                                                    setShowExperienceModal(true);
-                                                }}
-                                            >
-                                                Add your first experience
-                                            </Button>
+                                            {!isReadOnly && (
+                                                <Button 
+                                                    variant="link" 
+                                                    className="mt-2"
+                                                    onClick={() => {
+                                                        setEditingExperience(null);
+                                                        setShowExperienceModal(true);
+                                                    }}
+                                                >
+                                                    Add your first experience
+                                                </Button>
+                                            )}
                                         </div>
                                     )}
                                 </div>
@@ -1064,12 +1110,16 @@ const Profile = () => {
                                                                 {edu.endDate ? ` ${new Date(edu.endDate).getFullYear()}` : ' Present'}
                                                             </span>
                                                             <div className="d-flex gap-2">
-                                                                <Button variant="link" className="text-warning p-0 btn-edit-timeline" onClick={() => handleEditEducation(edu)}>
-                                                                    <i className="fas fa-pencil-alt"></i>
-                                                                </Button>
-                                                                <Button variant="link" className="text-danger p-0 btn-delete-timeline" onClick={() => handleDeleteEducation(edu.id)}>
-                                                                    <i className="fas fa-trash-alt"></i>
-                                                                </Button>
+                                                                {!isReadOnly && (
+                                                                    <>
+                                                                        <Button variant="link" className="text-warning p-0 btn-edit-timeline" onClick={() => handleEditEducation(edu)}>
+                                                                            <i className="fas fa-pencil-alt"></i>
+                                                                        </Button>
+                                                                        <Button variant="link" className="text-danger p-0 btn-delete-timeline" onClick={() => handleDeleteEducation(edu.id)}>
+                                                                            <i className="fas fa-trash-alt"></i>
+                                                                        </Button>
+                                                                    </>
+                                                                )}
                                                             </div>
                                                         </div>
                                                         <h6 className="timeline-title">{edu.degree} {edu.fieldOfStudy ? `in ${edu.fieldOfStudy}` : ''}</h6>
@@ -1083,7 +1133,7 @@ const Profile = () => {
                                         <div className="text-center py-5 timeline-empty-state rounded-4 border border-dashed">
                                             <i className="fas fa-graduation-cap fs-1 text-muted mb-3"></i>
                                             <p className="text-muted mb-0">No education records found.</p>
-                                            <Button variant="link" className="mt-2" onClick={() => setShowEducationModal(true)}>Add your education</Button>
+                                            {!isReadOnly && <Button variant="link" className="mt-2" onClick={() => setShowEducationModal(true)}>Add your education</Button>}
                                         </div>
                                     )}
                                 </div>
@@ -1105,22 +1155,26 @@ const Profile = () => {
                                                                 <div className="cert-icon-wrapper rounded-3 bg-primary bg-opacity-10 text-primary p-3">
                                                                     <i className="fas fa-certificate fs-4"></i>
                                                                 </div>
-                                                                <div className="d-flex gap-2 cert-actions-wrapper">
-                                                                    <Button 
-                                                                        variant="link" 
-                                                                        className="text-primary p-0"
-                                                                        onClick={() => handleEditCertification(cert)}
-                                                                    >
-                                                                        <i className="fas fa-pencil-alt"></i>
-                                                                    </Button>
-                                                                    <Button 
-                                                                        variant="link" 
-                                                                        className="text-danger p-0"
-                                                                        onClick={() => handleDeleteCertification(cert.id)}
-                                                                    >
-                                                                        <i className="fas fa-trash-alt"></i>
-                                                                    </Button>
-                                                                </div>
+                                                                    <div className="d-flex gap-2 cert-actions-wrapper">
+                                                                        {!isReadOnly && (
+                                                                            <>
+                                                                                <Button 
+                                                                                    variant="link" 
+                                                                                    className="text-primary p-0"
+                                                                                    onClick={() => handleEditCertification(cert)}
+                                                                                >
+                                                                                    <i className="fas fa-pencil-alt"></i>
+                                                                                </Button>
+                                                                                <Button 
+                                                                                    variant="link" 
+                                                                                    className="text-danger p-0"
+                                                                                    onClick={() => handleDeleteCertification(cert.id)}
+                                                                                >
+                                                                                    <i className="fas fa-trash-alt"></i>
+                                                                                </Button>
+                                                                            </>
+                                                                        )}
+                                                                    </div>
                                                             </div>
                                                             <h5 className="fw-bold mb-1">{cert.name}</h5>
                                                             <p className="text-muted small mb-3">{cert.issuingOrganization}</p>
@@ -1155,7 +1209,7 @@ const Profile = () => {
                                         <div className="text-center py-5 timeline-empty-state rounded-4 border border-dashed">
                                             <i className="fas fa-certificate fs-1 text-muted mb-3"></i>
                                             <p className="text-muted mb-0">No certifications found.</p>
-                                            <Button variant="link" className="mt-2" onClick={() => setShowCertificationModal(true)}>Add your first certification</Button>
+                                            {!isReadOnly && <Button variant="link" className="mt-2" onClick={() => setShowCertificationModal(true)}>Add your first certification</Button>}
                                         </div>
                                     )}
                                 </div>

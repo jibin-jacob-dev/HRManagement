@@ -13,4 +13,6 @@ public class RoleMenu
     
     [ForeignKey("MenuId")]
     public Menu Menu { get; set; } = null!;
+
+    public string PermissionType { get; set; } = "Full"; // "Full", "Read"
 }
