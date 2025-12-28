@@ -2,8 +2,13 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { authService } from '../../services/api';
 import alertService from '../../services/alertService';
-import { Form, Button, Card, Container, Spinner } from 'react-bootstrap';
+import { Form, Button, Card, Row, Col, Spinner, Carousel } from 'react-bootstrap';
 import ThemeToggle from '../common/ThemeToggle';
+import FontSizeControl from '../common/FontSizeControl';
+import './Auth.css';
+import carousel1 from '../../assets/auth/carousel-1.png';
+import carousel2 from '../../assets/auth/carousel-2.png';
+import carousel3 from '../../assets/auth/carousel-3.png';
 
 const Register = () => {
     const [formData, setFormData] = useState({
@@ -41,7 +46,6 @@ const Register = () => {
             const data = err.response?.data;
             let errorMessage = 'Failed to create an account';
             if (typeof data === 'object' && !data.message) {
-                // Handle Identity errors array
                 const errors = Object.values(data).flat().join('. ');
                 errorMessage = errors || errorMessage;
             } else {
@@ -54,39 +58,114 @@ const Register = () => {
     };
 
     return (
-        <Container className="d-flex align-items-center justify-content-center" style={{ minHeight: '100vh' }}>
-            <div className="position-fixed top-0 end-0 p-4">
+        <div className="auth-page-wrapper">
+            <div className="position-fixed top-0 end-0 p-4 d-flex align-items-center gap-3" style={{ zIndex: 1000 }}>
+                <FontSizeControl />
                 <ThemeToggle />
             </div>
-            <div className="w-100" style={{ maxWidth: '500px' }}>
-                <Card className="shadow-lg border-0">
-                    <Card.Body className="p-4">
-                        <h2 className="text-center mb-4 text-primary">HR Management</h2>
-                        <h4 className="text-center mb-4">Create Account</h4>
+            
+            <Card className="auth-card">
+                <Row className="g-0">
+                    <Col md={6} className="auth-carousel-section">
+                        <Carousel controls={false} indicators={true} fade className="w-100">
+                            <Carousel.Item interval={3000}>
+                                <div className="carousel-img-container">
+                                    <img className="carousel-img" src={carousel1} alt="Collaboration" />
+                                </div>
+                                <div className="carousel-caption-text">
+                                    <h3>Join our community</h3>
+                                    <p>Start your journey with a modern HR platform designed for growth.</p>
+                                </div>
+                            </Carousel.Item>
+                            <Carousel.Item interval={3000}>
+                                <div className="carousel-img-container">
+                                    <img className="carousel-img" src={carousel2} alt="Analytics" />
+                                </div>
+                                <div className="carousel-caption-text">
+                                    <h3>Manage with ease</h3>
+                                    <p>Experience the simplicity of powerful management tools at your fingertips.</p>
+                                </div>
+                            </Carousel.Item>
+                            <Carousel.Item interval={3000}>
+                                <div className="carousel-img-container">
+                                    <img className="carousel-img" src={carousel3} alt="Growth" />
+                                </div>
+                                <div className="carousel-caption-text">
+                                    <h3>Scale your talent</h3>
+                                    <p>Build a workforce that excels and grows together with our specialized modules.</p>
+                                </div>
+                            </Carousel.Item>
+                        </Carousel>
+                    </Col>
+                    
+                    <Col md={6} className="auth-form-section">
+                        <div className="auth-brand">HR Pro</div>
+                        <h2>Create Account</h2>
+                        <p className="text-muted mb-4">Get started with your free account</p>
+                        
                         <Form onSubmit={handleSubmit}>
-                            <div className="d-flex gap-2">
-                                <Form.Group className="mb-3 w-50">
-                                    <Form.Label>First Name</Form.Label>
-                                    <Form.Control type="text" id="firstName" required value={formData.firstName} onChange={handleChange} />
-                                </Form.Group>
-                                <Form.Group className="mb-3 w-50">
-                                    <Form.Label>Last Name</Form.Label>
-                                    <Form.Control type="text" id="lastName" required value={formData.lastName} onChange={handleChange} />
-                                </Form.Group>
-                            </div>
+                            <Row className="mb-3">
+                                <Col sm={6}>
+                                    <Form.Group id="firstName">
+                                        <Form.Label className="small fw-bold">First Name</Form.Label>
+                                        <Form.Control 
+                                            className="auth-input"
+                                            type="text" 
+                                            id="firstName"
+                                            required 
+                                            value={formData.firstName} 
+                                            onChange={handleChange} 
+                                        />
+                                    </Form.Group>
+                                </Col>
+                                <Col sm={6}>
+                                    <Form.Group id="lastName">
+                                        <Form.Label className="small fw-bold">Last Name</Form.Label>
+                                        <Form.Control 
+                                            className="auth-input"
+                                            type="text" 
+                                            id="lastName"
+                                            required 
+                                            value={formData.lastName} 
+                                            onChange={handleChange} 
+                                        />
+                                    </Form.Group>
+                                </Col>
+                            </Row>
                             <Form.Group className="mb-3">
-                                <Form.Label>Email Address</Form.Label>
-                                <Form.Control type="email" id="email" required value={formData.email} onChange={handleChange} />
+                                <Form.Label className="small fw-bold">Email Address</Form.Label>
+                                <Form.Control 
+                                    className="auth-input"
+                                    type="email" 
+                                    id="email" 
+                                    required 
+                                    value={formData.email} 
+                                    onChange={handleChange} 
+                                />
                             </Form.Group>
                             <Form.Group className="mb-3">
-                                <Form.Label>Password</Form.Label>
-                                <Form.Control type="password" id="password" required value={formData.password} onChange={handleChange} />
+                                <Form.Label className="small fw-bold">Password</Form.Label>
+                                <Form.Control 
+                                    className="auth-input"
+                                    type="password" 
+                                    id="password" 
+                                    required 
+                                    value={formData.password} 
+                                    onChange={handleChange} 
+                                />
                             </Form.Group>
                             <Form.Group className="mb-4">
-                                <Form.Label>Confirm Password</Form.Label>
-                                <Form.Control type="password" id="confirmPassword" required value={formData.confirmPassword} onChange={handleChange} />
+                                <Form.Label className="small fw-bold">Confirm Password</Form.Label>
+                                <Form.Control 
+                                    className="auth-input"
+                                    type="password" 
+                                    id="confirmPassword" 
+                                    required 
+                                    value={formData.confirmPassword} 
+                                    onChange={handleChange} 
+                                />
                             </Form.Group>
-                            <Button disabled={loading} className="w-100 mb-3" type="submit">
+                            <Button disabled={loading} className="w-100 mb-3 auth-btn btn-primary" type="submit">
                                 {loading ? (
                                     <>
                                         <Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true" className="me-2" />
@@ -95,13 +174,13 @@ const Register = () => {
                                 ) : 'Sign Up'}
                             </Button>
                         </Form>
-                        <div className="w-100 text-center mt-2">
-                            Already have an account? <Link to="/login">Log In</Link>
+                        <div className="w-100 text-center mt-3 text-muted small">
+                            Already have an account? <Link to="/login" className="text-primary fw-bold text-decoration-none">Log In</Link>
                         </div>
-                    </Card.Body>
-                </Card>
-            </div>
-        </Container>
+                    </Col>
+                </Row>
+            </Card>
+        </div>
     );
 };
 

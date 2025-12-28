@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { Navbar, Nav, Container, Button, Form, InputGroup, Dropdown, Badge } from 'react-bootstrap';
 import { authService } from '../../services/api';
 import ThemeToggle from '../common/ThemeToggle';
+import FontSizeControl from '../common/FontSizeControl';
 
 const CustomNavbar = ({ toggleSidebar, isCollapsed }) => {
     const navigate = useNavigate();
@@ -68,12 +69,23 @@ const CustomNavbar = ({ toggleSidebar, isCollapsed }) => {
                                 {getInitials()}
                             </div>
                         </Dropdown.Toggle>
-                        <Dropdown.Menu className="shadow-lg border-0 mt-3 p-2" style={{ minWidth: '220px', borderRadius: '12px' }}>
+                    <Dropdown.Menu className="shadow-lg border-0 mt-3 p-2" style={{ minWidth: '320px', borderRadius: '12px' }}>
                              <div className="p-3 border-bottom mb-2">
                                 <h6 className="mb-0 fw-bold">{user?.firstName} {user?.lastName}</h6>
                                 <small className="text-muted">{user?.email}</small>
                             </div>
-                            <Dropdown.Item as={Link} to="/profile" className="rounded-3 py-2 small">
+                            
+                            <div className="px-3 py-2 border-bottom mb-2">
+                                <div className="small fw-bold text-muted mb-2 text-uppercase" style={{ fontSize: '0.65rem', letterSpacing: '0.05rem' }}>
+                                    Appearance
+                                </div>
+                                <div className="d-flex align-items-center justify-content-between gap-2">
+                                    <span className="small">Font Size</span>
+                                    <FontSizeControl />
+                                </div>
+                            </div>
+
+                            <Dropdown.Item href="#profile" className="rounded-3 py-2 small">
                                 <i className="fas fa-user-circle me-2 opacity-75"></i> Profile
                             </Dropdown.Item>
                             <Dropdown.Item href="#settings" className="rounded-3 py-2 small">
