@@ -117,12 +117,13 @@ export const menuService = {
         const response = await api.delete(`/menus/${id}`);
         return response.data;
     },
-    getRoleMenuIds: async (roleId) => {
+    getRoleMenus: async (roleId) => {
         const response = await api.get(`/menus/role/${roleId}`);
-        return response.data;
+        return response.data; // Now returns list of objects { menuId, permissionType }
     },
-    updateRoleMenus: async (roleId, menuIds) => {
-        const response = await api.post(`/menus/role/${roleId}`, menuIds);
+    updateRoleMenus: async (roleId, menuPermissions) => {
+        // menuPermissions should be array of { menuId, permissionType }
+        const response = await api.post(`/menus/role/${roleId}`, menuPermissions);
         return response.data;
     },
     getCurrentUserMenus: async () => {
@@ -134,6 +135,10 @@ export const menuService = {
 export const employeeProfileService = {
     getProfile: async () => {
         const response = await api.get('/employeeprofile');
+        return response.data;
+    },
+    getProfileByUserId: async (userId) => {
+        const response = await api.get(`/employeeprofile/${userId}`);
         return response.data;
     },
     updatePersonalInfo: async (data) => {

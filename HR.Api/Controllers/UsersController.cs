@@ -35,7 +35,8 @@ public class UsersController : ControllerBase
                 u.LastName,
                 u.EmployeeId,
                 u.IsActive,
-                u.CreatedDate
+                u.CreatedDate,
+                ProfilePicture = u.Employee != null ? u.Employee.ProfilePicture : null
             })
             .ToListAsync();
 
@@ -54,6 +55,7 @@ public class UsersController : ControllerBase
                 user.EmployeeId,
                 user.IsActive,
                 user.CreatedDate,
+                user.ProfilePicture,
                 Roles = roles
             });
         }

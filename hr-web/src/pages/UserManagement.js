@@ -7,6 +7,7 @@ import { useTheme } from '../context/ThemeContext';
 import { useGridSettings } from '../hooks/useGridSettings';
 import GridContainer from '../components/common/GridContainer';
 import alertService from '../services/alertService';
+import { usePermission } from '../hooks/usePermission';
 
 // Custom Styles
 import './UserManagement.css';
@@ -16,6 +17,7 @@ ModuleRegistry.registerModules([AllCommunityModule]);
 
 const UserManagement = () => {
     const { isDarkMode } = useGridSettings();
+    const { canEdit } = usePermission('/user-management');
     const { gridTheme, defaultColDef, suppressCellFocus } = useGridSettings();
     const [users, setUsers] = useState([]);
     const [roles, setRoles] = useState([]);
@@ -203,14 +205,24 @@ const UserManagement = () => {
             width: 110,
             cellRenderer: (params) => (
                 <div className="d-flex h-100 align-items-center">
-                    <Badge 
-                        bg={params.value ? 'success' : 'secondary'} 
-                        className={`rounded-pill px-3 cursor-pointer status-badge-toggle ${params.value ? 'bg-opacity-10 text-success border border-success' : 'bg-opacity-10 text-secondary border border-secondary'}`}
-                        style={{ fontSize: '0.7rem' }}
-                        onClick={() => handleStatusToggle(params.data)}
-                    >
-                        {params.value ? 'Active' : 'Inactive'}
-                    </Badge>
+                    {canEdit ? (
+                        <Badge 
+                            bg={params.value ? 'success' : 'secondary'} 
+                            className={`rounded-pill px-3 cursor-pointer status-badge-toggle ${params.value ? 'bg-opacity-10 text-success border border-success' : 'bg-opacity-10 text-secondary border border-secondary'}`}
+                            style={{ fontSize: '0.7rem' }}
+                            onClick={() => handleStatusToggle(params.data)}
+                        >
+                            {params.value ? 'Active' : 'Inactive'}
+                        </Badge>
+                    ) : (
+                         <Badge 
+                            bg={params.value ? 'success' : 'secondary'} 
+                            className={`rounded-pill px-3 ${params.value ? 'bg-opacity-10 text-success border border-success' : 'bg-opacity-10 text-secondary border border-secondary'}`}
+                            style={{ fontSize: '0.7rem', cursor: 'default' }}
+                        >
+                            {params.value ? 'Active' : 'Inactive'}
+                        </Badge>
+                    )}
                 </div>
             )
         },
@@ -221,17 +233,19 @@ const UserManagement = () => {
             filter: false,
             cellRenderer: (params) => (
                 <div className="d-flex h-100 align-items-center justify-content-center">
-                    <Button 
-                        variant="link" 
-                        className="p-0 grid-action-btn text-primary" 
-                        onClick={() => handleEdit(params.data)}
-                    >
-                        <i className="fas fa-edit"></i>
-                    </Button>
+                    {canEdit && (
+                        <Button 
+                            variant="link" 
+                            className="p-0 grid-action-btn text-primary" 
+                            onClick={() => handleEdit(params.data)}
+                        >
+                            <i className="fas fa-edit"></i>
+                        </Button>
+                    )}
                 </div>
             )
         }
-    ], [isDarkMode]);
+    ], [isDarkMode, canEdit]);
 
     const defaultColDefMemo = useMemo(() => defaultColDef, [defaultColDef]);
 
@@ -253,14 +267,16 @@ const UserManagement = () => {
                                 onChange={(e) => setQuickFilterText(e.target.value)}
                             />
                         </div>
-                        <Button variant="primary" className="px-4 shadow-sm" onClick={handleAdd}>
-                            <i className="fas fa-plus me-2"></i>
-                            Add User
-                        </Button>
+                        {canEdit && (
+                            <Button variant="primary" className="px-4 shadow-sm" onClick={handleAdd}>
+                                <i className="fas fa-plus me-2"></i>
+                                Add User
+                            </Button>
+                        )}
                     </div>
                 </div>
 
-                <GridContainer height="600px">
+                <GridContainer>
                     {loading ? (
                         <div className="d-flex h-100 justify-content-center align-items-center">
                             <div className="text-center">
@@ -303,56 +319,65 @@ const UserManagement = () => {
                                     disabled={modalMode === 'edit'}
                                 />
                             </Form.Group>
-                            {modalMode === 'add' && (
-                                <Form.Group className="mb-3">
-                                    <Form.Label>Password</Form.Label>
+                            
+                            <Form.Group className="mb-3">
+                                <Form.Label>Password {modalMode === 'edit' && <span className="text-muted small fw-normal">(Leave blank to keep current)</span>}</Form.Label>
+                                <Form.Control 
+                                    type="password" 
+                                    placeholder="Enter password"
+                                    value={formData.password}
+                                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                                />
+                            </Form.Group>
+
+                            <div className="row">
+                                <div className="col-md-6 mb-3">
+                                    <Form.Label>First Name</Form.Label>
                                     <Form.Control 
-                                        type="password" 
-                                        placeholder="Enter password"
-                                        value={formData.password}
-                                        onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                                        type="text" 
+                                        placeholder="First name"
+                                        value={formData.firstName}
+                                        onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
                                     />
-                                </Form.Group>
-                            )}
+                                </div>
+                                <div className="col-md-6 mb-3">
+                                    <Form.Label>Last Name</Form.Label>
+                                    <Form.Control 
+                                        type="text" 
+                                        placeholder="Last name"
+                                        value={formData.lastName}
+                                        onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+                                    />
+                                </div>
+                            </div>
+
                             <Form.Group className="mb-3">
-                                <Form.Label>First Name</Form.Label>
-                                <Form.Control 
-                                    type="text" 
-                                    placeholder="Enter first name"
-                                    value={formData.firstName}
-                                    onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
-                                />
+                                <Form.Label>Roles</Form.Label>
+                                <div className="d-flex gap-2 flex-wrap">
+                                    {roles.map(role => (
+                                        <div key={role} className="form-check form-check-inline">
+                                            <input 
+                                                className="form-check-input" 
+                                                type="checkbox" 
+                                                id={`role-${role}`}
+                                                checked={formData.roles.includes(role)}
+                                                onChange={() => handleRoleToggle(role)}
+                                            />
+                                            <label className="form-check-label" htmlFor={`role-${role}`}>{role}</label>
+                                        </div>
+                                    ))}
+                                </div>
                             </Form.Group>
-                            <Form.Group className="mb-3">
-                                <Form.Label>Last Name</Form.Label>
-                                <Form.Control 
-                                    type="text" 
-                                    placeholder="Enter last name"
-                                    value={formData.lastName}
-                                    onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
-                                />
-                            </Form.Group>
+
                             <Form.Group className="mb-3">
                                 <Form.Check 
                                     type="switch"
-                                    label="Active Account"
+                                    id="status-switch"
+                                    label={formData.isActive ? 'Active Account' : 'Inactive Account'}
                                     checked={formData.isActive}
                                     onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
                                 />
                             </Form.Group>
-                            <Form.Label className="mb-2 d-block">Roles</Form.Label>
-                            <div className="d-flex flex-wrap gap-2 mb-3">
-                                {roles.map(role => (
-                                    <Button
-                                        key={role}
-                                        variant={formData.roles.includes(role) ? 'primary' : 'outline-secondary'}
-                                        size="sm"
-                                        onClick={() => handleRoleToggle(role)}
-                                    >
-                                        {role}
-                                    </Button>
-                                ))}
-                            </div>
                         </Form>
                     </Modal.Body>
                     <Modal.Footer>

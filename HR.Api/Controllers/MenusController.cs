@@ -88,18 +88,28 @@ public class MenusController : ControllerBase
 
     // Role Management Endpoints
 
+    public class RoleMenuDto
+    {
+        public int MenuId { get; set; }
+        public string PermissionType { get; set; } = "Full";
+    }
+
     [HttpGet("role/{roleId}")]
-    public async Task<ActionResult<IEnumerable<int>>> GetRoleMenuIds(string roleId)
+    public async Task<ActionResult<IEnumerable<RoleMenuDto>>> GetRoleMenus(string roleId)
     {
         return await _context.RoleMenus
             .Where(rm => rm.RoleId == roleId)
-            .Select(rm => rm.MenuId)
+            .Select(rm => new RoleMenuDto 
+            { 
+                MenuId = rm.MenuId, 
+                PermissionType = rm.PermissionType 
+            })
             .ToListAsync();
     }
 
     [HttpPost("role/{roleId}")]
     [Authorize(Roles = "Admin")]
-    public async Task<IActionResult> UpdateRoleMenus(string roleId, [FromBody] List<int> menuIds)
+    public async Task<IActionResult> UpdateRoleMenus(string roleId, [FromBody] List<RoleMenuDto> menuPermissions)
     {
         var role = await _context.Roles.FindAsync(roleId);
         if (role == null) return NotFound("Role not found");
@@ -109,9 +119,14 @@ public class MenusController : ControllerBase
         _context.RoleMenus.RemoveRange(existing);
 
         // Add new mappings
-        foreach (var menuId in menuIds)
+        foreach (var item in menuPermissions)
         {
-            _context.RoleMenus.Add(new RoleMenu { RoleId = roleId, MenuId = menuId });
+            _context.RoleMenus.Add(new RoleMenu 
+            { 
+                RoleId = roleId, 
+                MenuId = item.MenuId,
+                PermissionType = item.PermissionType
+            });
         }
 
         await _context.SaveChangesAsync();
@@ -148,19 +163,41 @@ public class MenusController : ControllerBase
         // However, we want the tree structure.
         
         // Better approach: Get all IDs accessible, then fetch the full Menu entities with Children.
-        var accessibleMenuIds = await _context.RoleMenus
+        // We also need to know the permission type for each menu.
+        // If a user has multiple roles with conflicting permissions (e.g. one Read, one Full) for the same menu, "Full" should win.
+        
+        var userRoleMenus = await _context.RoleMenus
             .Where(rm => userRoleIds.Contains(rm.RoleId))
-            .Select(rm => rm.MenuId)
-            .Distinct()
+            .Select(rm => new { rm.MenuId, rm.PermissionType })
             .ToListAsync();
 
-        var allMenus = await _context.Menus.ToListAsync(); // Load all into memory to build tree or filter
+        var accessibleMenuIds = userRoleMenus.Select(rm => rm.MenuId).Distinct().ToList();
+
+        var allMenus = await _context.Menus.ToListAsync(); 
         
-        // Filter: Keep menus that are in accessible list OR have children that are in accessible list?
-        // Simple permission model: If you have the parent, do you see children? Or do you need explicit?
-        // Usually: Explicit grant to each node.
-        
-        var visibleMenus = allMenus.Where(m => accessibleMenuIds.Contains(m.Id)).ToList();
+        var visibleMenus = allMenus.Where(m => accessibleMenuIds.Contains(m.Id)).Select(m => {
+            // Determine permission for this menu
+            var permissionsForMenu = userRoleMenus.Where(rm => rm.MenuId == m.Id).Select(rm => rm.PermissionType);
+            var effectivePermission = permissionsForMenu.Contains("Full") ? "Full" : "Read";
+            
+            // We can't easily add a property to the Entity `Menu` without ignoring it in DB.
+            // But we can return an anonymous object or a DTO.
+            // For simplicity in this existing controller structure, let's use a dynamic approach or mapped DTO if possible.
+            // Or just append it to the response if the frontend expects it.
+            // Let's modify the return type to be dynamic or a specific DTO.
+            
+            return new 
+            {
+                m.Id,
+                m.Label,
+                m.Route,
+                m.Icon,
+                m.ParentId,
+                m.OrderIndex,
+                m.Children, // Note: Children won't be recursively mapped with permissions here easily without separate recursion
+                PermissionType = effectivePermission
+            };
+        }).ToList();
         
         return Ok(visibleMenus);
     }

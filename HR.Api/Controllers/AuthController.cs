@@ -5,6 +5,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using HR.Core.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace HR.Api.Controllers;
 
@@ -64,7 +65,11 @@ public class AuthController : ControllerBase
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
 
-        var user = await _userManager.FindByEmailAsync(model.Email);
+        // Use EF Core to include Employee data
+        var user = await _userManager.Users
+            .Include(u => u.Employee)
+            .FirstOrDefaultAsync(u => u.Email == model.Email);
+
         if (user == null)
             return Unauthorized(new { message = "Invalid email or password" });
 
@@ -98,6 +103,7 @@ public class AuthController : ControllerBase
                 user.FirstName,
                 user.LastName,
                 user.EmployeeId,
+                ProfilePicture = user.Employee?.ProfilePicture,
                 Roles = roles
             }
         });

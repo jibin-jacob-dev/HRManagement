@@ -184,6 +184,8 @@ const Sidebar = ({ isCollapsed, toggleSidebar }) => {
                     {/* Recursive Menu Renderer */}
                     {menuTree.map(menu => renderMenuItem(menu))}
 
+
+
                     {/* Fallback if no menus (e.g. first run) - Only for safety ensuring Admin can access Menu Setup */}
                     {menus.length === 0 && (
                         <div className="text-center text-muted small mt-4 p-2">

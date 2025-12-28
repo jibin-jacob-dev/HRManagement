@@ -82,6 +82,28 @@ public class EmployeeProfileController : ControllerBase
         return Ok(user.Employee);
     }
 
+    [HttpGet("{userId}")]
+    public async Task<ActionResult<Employee>> GetProfileByUserId(string userId)
+    {
+        var user = await _context.Users
+            .Include(u => u.Employee)
+                .ThenInclude(e => e.Department)
+            .Include(u => u.Employee)
+                .ThenInclude(e => e.Position)
+            .Include(u => u.Employee)
+                .ThenInclude(e => e.Experiences)
+            .Include(u => u.Employee)
+                .ThenInclude(e => e.Educations)
+            .Include(u => u.Employee)
+                .ThenInclude(e => e.Certifications)
+            .FirstOrDefaultAsync(u => u.Id == userId);
+
+        if (user == null || user.Employee == null)
+            return NotFound("User or Employee profile not found");
+
+        return Ok(user.Employee);
+    }
+
     [HttpPut("personal")]
     public async Task<IActionResult> UpdatePersonalInfo([FromBody] Employee updateData)
     {

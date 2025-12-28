@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { usePermission } from '../hooks/usePermission';
 import { Container, Row, Col, Card, Button, Form, Modal } from 'react-bootstrap';
 import { AgGridReact } from 'ag-grid-react';
 import { positionService, departmentService } from '../services/api';
@@ -15,6 +16,7 @@ import './PositionManagement.css';
 ModuleRegistry.registerModules([AllCommunityModule]);
 
 const PositionManagement = () => {
+    const { canEdit } = usePermission('/positions');
     const [positions, setPositions] = useState([]);
     const [departments, setDepartments] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -126,26 +128,30 @@ const PositionManagement = () => {
             filter: false,
             cellRenderer: (params) => (
                 <div className="d-flex h-100 align-items-center justify-content-center gap-2">
-                    <Button 
-                        variant="link" 
-                        className="p-0 grid-action-btn text-primary" 
-                        onClick={() => handleEdit(params.data)}
-                        title="Edit Position"
-                    >
-                        <i className="fas fa-edit"></i>
-                    </Button>
-                    <Button 
-                        variant="link" 
-                        className="p-0 grid-action-btn text-danger" 
-                        onClick={() => handleDelete(params.data)}
-                        title="Delete Position"
-                    >
-                        <i className="fas fa-trash-alt"></i>
-                    </Button>
+                    {canEdit && (
+                        <>
+                            <Button 
+                                variant="link" 
+                                className="p-0 grid-action-btn text-primary" 
+                                onClick={() => handleEdit(params.data)}
+                                title="Edit Position"
+                            >
+                                <i className="fas fa-edit"></i>
+                            </Button>
+                            <Button 
+                                variant="link" 
+                                className="p-0 grid-action-btn text-danger" 
+                                onClick={() => handleDelete(params.data)}
+                                title="Delete Position"
+                            >
+                                <i className="fas fa-trash-alt"></i>
+                            </Button>
+                        </>
+                    )}
                 </div>
             )
         }
-    ], [departments]);
+    ], [departments, canEdit]);
 
     return (
         <Container fluid className="position-management-container page-animate p-0">
@@ -165,9 +171,11 @@ const PositionManagement = () => {
                             onChange={(e) => setQuickFilterText(e.target.value)}
                         />
                     </div>
-                    <Button variant="primary" className="px-4 shadow-sm" onClick={handleAdd}>
-                        <i className="fas fa-plus me-2"></i> Add Position
-                    </Button>
+                    {canEdit && (
+                        <Button variant="primary" className="px-4 shadow-sm" onClick={handleAdd}>
+                            <i className="fas fa-plus me-2"></i> Add Position
+                        </Button>
+                    )}
                 </div>
             </div>
 

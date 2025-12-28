@@ -1,93 +1,129 @@
 # HR Management System
 
-A comprehensive HR Management System built with .NET Web API, SQL Server, and React.
+A comprehensive, enterprise-grade HR Management System designed to streamline organizational processes, from employee onboarding to role-based access control. Built with cutting-edge technologies including .NET 10.0 and React 19.
 
-## Technology Stack
+## 🚀 Technology Stack
 
-- **Backend**: ASP.NET Core Web API (.NET 10.0)
-- **Database**: SQL Server
-- **Frontend**: React with Bootstrap 5
-- **Authentication**: ASP.NET Core Identity with JWT
+### Backend
+*   **Framework:** ASP.NET Core Web API (.NET 10.0)
+*   **Language:** C# 14.0
+*   **Database:** SQL Server (Entity Framework Core 10.0)
+*   **Authentication:** ASP.NET Core Identity with JWT Bearer Authentication
+*   **Documentation:** Swagger / OpenAPI
 
-## Project Structure
+### Frontend
+*   **Library:** React 19.2.3
+*   **Styling:** Bootstrap 5.3.8, Custom CSS Variables
+*   **Data Grid:** AG Grid Community v35.0.0
+*   **State Management:** React Context API (Theme, Menu)
+*   **HTTP Client:** Axios
+*   **Forms:** Formik + Yup Validation
+*   **Routing:** React Router v7.11.0
+*   **Utilities:** SweetAlert2, React Datepicker
 
-- **HR.Api**: Web API project with controllers and API configuration
-- **HR.Core**: Business logic, domain models, and data access
-- **hr-web**: React frontend application
+## 📂 Project Structure
 
-## Features
+### `HR.Api` (Backend)
+The RESTful API layer handling requests, authentication, and responses.
+*   **Controllers:**
+    *   `AuthController`: Login, Register, Logout.
+    *   `UsersController`: System user management.
+    *   `RolesController`: Role definitions and CRUD.
+    *   `MenusController`: Dynamic menu management and Role-Menu permission mapping.
+    *   `EmployeesController`: Core employee data operations.
+    *   `EmployeeProfileController`: Detailed profile sections (Education, Experience, etc.).
+    *   `DepartmentsController`, `PositionsController`, `LevelsController`: Organizational master data.
 
-- Employee Management (CRUD operations)
-- Department Management
-- Leave Management
-- Attendance Tracking
-- Payroll Management
-- Role-based Authentication (Admin, HR Manager, Employee)
+### `HR.Core` (Shared)
+Contains the domain logic, database context, and models.
+*   **Models:** `ApplicationUser`, `ApplicationRole`, `Employee`, `Department`, `Position`, `Level`, `Menu`, `RoleMenu`, `Attendance`, `Leave`, `Payroll`.
 
-## Getting Started
+### `hr-web` (Frontend)
+The React-based Single Page Application (SPA).
+*   **Pages:**
+    *   **Dashboard**: Main overview.
+    *   **Authentication**: Login, Register.
+    *   **Employee Management**: `EmployeeList` (AG Grid view), `Profile` (Detailed view with tabs).
+    *   **Org Management**: `DepartmentManagement`, `PositionManagement`, `LevelManagement`.
+    *   **System Admin**: `UserManagement` (Account status, Password reset), `RoleManagement` (Permission assignment), `MenuManagement` (Sidebar configuration).
+*   **Components**: Reusable UI blocks (`Sidebar`, `Navbar`, `GridContainer`, `StatCard`).
+*   **Hooks**: `usePermission` (Access control), `useGridSettings` (Standardized grid configs).
+
+## ✨ Key Features
+
+### 1. Authentication & Security
+*   **Secure Login:** JWT-based stateless authentication.
+*   **Role-Based Access Control (RBAC):** dynamic permission checking.
+*   **Granular Permissions:** Roles are assigned specific access rights (Read/Full) to individual menus/routes.
+
+### 2. Employee Profile Management
+*   **Comprehensive Data:** Personal Info, Professional Info, Education, Experience, Certifications.
+*   **Document Management:** Profile picture upload with cropping functionality.
+
+### 3. Organizational Master Data
+*   **Departments:** Manage company departments.
+*   **Positions:** Define job titles and hierarchies.
+*   **Levels:** clear definition of seniority levels (L1, L2, etc.).
+
+### 4. Dynamic System Administration
+*   **Dynamic Menus:** Sidebar menus are database-driven and customizable via `MenuManagement`.
+*   **Role Management:** Create custom roles and drag-and-drop/checkbox assign permissions.
+*   **User Management:** detailed control over user accounts, statuses, and role assignments.
+
+### 5. Advanced UI/UX
+*   **Dark/Light Mode:** System-wide theme toggling.
+*   **AG Grid Integration:** High-performance data tables with filtering, sorting, and pagination.
+*   **Responsive Design:** Mobile-friendly layout using Bootstrap.
+
+## 🛠️ Development Guidelines
+
+### Permission-Based Page Development
+**CRITICAL:** All new management pages and features **MUST** implement permission-based access control.
+
+1.  **Use the Hook:** Always import and use the `usePermission` hook at the top of your page component.
+    ```javascript
+    import { usePermission } from '../hooks/usePermission';
+    
+    const MyComponent = () => {
+        const { canEdit } = usePermission('/my-route-path');
+        // ...
+    }
+    ```
+2.  **Route as Key:** Use the page's route path (e.g., `/departments`, `/user-management`) as the permission key. This ensures consistency between the sidebar and the permission logic.
+3.  **Conditional Rendering:**
+    *   **Read Only Mode:** If `canEdit` is false, hide "Add", "Edit", "Delete" buttons.
+    *   **Grid Actions:** Use the `canEdit` flag inside AG Grid `cellRenderer` to conditionally show/hide action icons.
+4.  **Strict Enforcement:** Ensure "Read Only" users cannot see UI elements that trigger write operations.
+
+## ⚙️ Setup & Installation
 
 ### Prerequisites
-
-- .NET 10.0 SDK
-- SQL Server
-- Node.js and npm
+*   .NET 10.0 SDK
+*   Node.js (v18+) & npm
+*   SQL Server
 
 ### Backend Setup
-
-1. Navigate to the HR.Api directory
-2. Update the connection string in `appsettings.json`
-3. Run migrations:
-   ```bash
-   dotnet ef database update --project ../HR.Core/HR.Core.csproj
-   ```
-4. Run the API:
-   ```bash
-   dotnet run
-   ```
-
-The API will be available at `https://localhost:5001` with Swagger documentation at `https://localhost:5001/swagger`
+1.  Navigate to `HR.Api`.
+2.  Update `appsettings.json` with your SQL Server connection string.
+3.  Run migrations:
+    ```bash
+    dotnet ef database update --project ../HR.Core/HR.Core.csproj
+    ```
+4.  Start the API:
+    ```bash
+    dotnet run
+    ```
 
 ### Frontend Setup
+1.  Navigate to `hr-web`.
+2.  Install packages:
+    ```bash
+    npm install
+    ```
+3.  Start the development server:
+    ```bash
+    npm start
+    ```
 
-1. Navigate to the hr-web directory
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
-3. Start the development server:
-   ```bash
-   npm start
-   ```
-
-The React app will be available at `http://localhost:3000`
-
-## Default Roles
-
-- Admin
-- HR Manager
-- Employee
-
-## API Endpoints
-
-### Authentication
-- POST `/api/auth/register` - Register new user
-- POST `/api/auth/login` - Login
-- POST `/api/auth/logout` - Logout
-
-### Employees
-- GET `/api/employees` - Get all employees
-- GET `/api/employees/{id}` - Get employee by ID
-- POST `/api/employees` - Create employee (Admin/HR Manager)
-- PUT `/api/employees/{id}` - Update employee (Admin/HR Manager)
-- DELETE `/api/employees/{id}` - Delete employee (Admin)
-
-### Departments
-- GET `/api/departments` - Get all departments
-- GET `/api/departments/{id}` - Get department by ID
-- POST `/api/departments` - Create department (Admin/HR Manager)
-- PUT `/api/departments/{id}` - Update department (Admin/HR Manager)
-- DELETE `/api/departments/{id}` - Delete department (Admin)
-
-## License
-
-MIT
+## 📄 License
+MIT License
