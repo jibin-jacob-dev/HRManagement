@@ -85,10 +85,10 @@ const CustomNavbar = ({ toggleSidebar, isCollapsed }) => {
                                 </div>
                             </div>
 
-                            <Dropdown.Item href="#profile" className="rounded-3 py-2 small">
+                            <Dropdown.Item as={Link} to="/profile" className="rounded-3 py-2 small">
                                 <i className="fas fa-user-circle me-2 opacity-75"></i> Profile
                             </Dropdown.Item>
-                            <Dropdown.Item href="#settings" className="rounded-3 py-2 small">
+                            <Dropdown.Item as={Link} to="/settings" className="rounded-3 py-2 small">
                                 <i className="fas fa-cog me-2 opacity-75"></i> Settings
                             </Dropdown.Item>
                             <Dropdown.Divider />
