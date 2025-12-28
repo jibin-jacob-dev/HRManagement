@@ -274,4 +274,160 @@ public class EmployeeProfileController : ControllerBase
 
         return Ok(new { message = "Experience updated successfully", experience });
     }
+
+    [HttpPost("education")]
+    public async Task<IActionResult> AddEducation([FromBody] EmployeeEducation education)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var user = await _context.Users.Include(u => u.Employee).FirstOrDefaultAsync(u => u.Id == userId);
+
+        if (user == null || user.Employee == null)
+            return NotFound("Employee profile not found");
+
+        education.EmployeeId = user.Employee.EmployeeId;
+        _context.EmployeeEducations.Add(education);
+        await _context.SaveChangesAsync();
+
+        return Ok(new { message = "Education added successfully", education });
+    }
+
+    [HttpDelete("remove-education/{id}")]
+    public async Task<IActionResult> DeleteEducation(int id)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var user = await _context.Users.Include(u => u.Employee).FirstOrDefaultAsync(u => u.Id == userId);
+
+        if (user == null || user.Employee == null)
+            return NotFound("Employee profile not found");
+
+        var education = await _context.EmployeeEducations
+            .FirstOrDefaultAsync(e => e.Id == id && e.EmployeeId == user.Employee.EmployeeId);
+
+        if (education == null)
+            return NotFound("Education record not found");
+
+        _context.EmployeeEducations.Remove(education);
+        await _context.SaveChangesAsync();
+
+        return Ok(new { message = "Education record removed successfully" });
+    }
+
+    [HttpPut("education/{id}")]
+    public async Task<IActionResult> UpdateEducation(int id, [FromBody] EmployeeEducation updateData)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var user = await _context.Users.Include(u => u.Employee).FirstOrDefaultAsync(u => u.Id == userId);
+
+        if (user == null || user.Employee == null)
+            return NotFound("Employee profile not found");
+
+        var education = await _context.EmployeeEducations
+            .FirstOrDefaultAsync(e => e.Id == id && e.EmployeeId == user.Employee.EmployeeId);
+
+        if (education == null)
+            return NotFound("Education record not found");
+
+        education.Institution = updateData.Institution;
+        education.Degree = updateData.Degree;
+        education.FieldOfStudy = updateData.FieldOfStudy;
+        education.StartDate = updateData.StartDate;
+        education.EndDate = updateData.EndDate;
+        education.Grade = updateData.Grade;
+
+        await _context.SaveChangesAsync();
+
+        return Ok(new { message = "Education record updated successfully", education });
+    }
+
+    [HttpPost("certification")]
+    public async Task<IActionResult> AddCertification([FromBody] EmployeeCertification certification)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var user = await _context.Users.Include(u => u.Employee).FirstOrDefaultAsync(u => u.Id == userId);
+
+        if (user == null || user.Employee == null)
+            return NotFound("Employee profile not found");
+
+        certification.EmployeeId = user.Employee.EmployeeId;
+        _context.EmployeeCertifications.Add(certification);
+        await _context.SaveChangesAsync();
+
+        return Ok(new { message = "Certification added successfully", certification });
+    }
+
+    [HttpDelete("remove-certification/{id}")]
+    public async Task<IActionResult> DeleteCertification(int id)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var user = await _context.Users.Include(u => u.Employee).FirstOrDefaultAsync(u => u.Id == userId);
+
+        if (user == null || user.Employee == null)
+            return NotFound("Employee profile not found");
+
+        var certification = await _context.EmployeeCertifications
+            .FirstOrDefaultAsync(e => e.Id == id && e.EmployeeId == user.Employee.EmployeeId);
+
+        if (certification == null)
+            return NotFound("Certification record not found");
+
+        _context.EmployeeCertifications.Remove(certification);
+        await _context.SaveChangesAsync();
+
+        return Ok(new { message = "Certification record removed successfully" });
+    }
+
+    [HttpPut("certification/{id}")]
+    public async Task<IActionResult> UpdateCertification(int id, [FromBody] EmployeeCertification updateData)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var user = await _context.Users.Include(u => u.Employee).FirstOrDefaultAsync(u => u.Id == userId);
+
+        if (user == null || user.Employee == null)
+            return NotFound("Employee profile not found");
+
+        var certification = await _context.EmployeeCertifications
+            .FirstOrDefaultAsync(e => e.Id == id && e.EmployeeId == user.Employee.EmployeeId);
+
+        if (certification == null)
+            return NotFound("Certification record not found");
+
+        certification.Name = updateData.Name;
+        certification.IssuingOrganization = updateData.IssuingOrganization;
+        certification.IssueDate = updateData.IssueDate;
+        certification.ExpiryDate = updateData.ExpiryDate;
+        certification.CredentialId = updateData.CredentialId;
+        certification.CredentialUrl = updateData.CredentialUrl;
+
+        await _context.SaveChangesAsync();
+
+        return Ok(new { message = "Certification record updated successfully", certification });
+    }
+
+    [HttpPost("upload-certification")]
+    public async Task<IActionResult> UploadCertificationFile([FromForm] IFormFile file)
+    {
+        if (file == null || file.Length == 0)
+            return BadRequest("No file uploaded");
+
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var user = await _context.Users.Include(u => u.Employee).FirstOrDefaultAsync(u => u.Id == userId);
+
+        if (user == null || user.Employee == null)
+            return NotFound("Employee profile not found");
+
+        var uploadsFolder = Path.Combine(_environment.WebRootPath, "uploads", "certifications");
+        if (!Directory.Exists(uploadsFolder))
+            Directory.CreateDirectory(uploadsFolder);
+
+        var fileName = $"{userId}_{DateTime.UtcNow.Ticks}{Path.GetExtension(file.FileName)}";
+        var filePath = Path.Combine(uploadsFolder, fileName);
+
+        using (var stream = new FileStream(filePath, FileMode.Create))
+        {
+            await file.CopyToAsync(stream);
+        }
+
+        var fileUrl = $"/uploads/certifications/{fileName}";
+        return Ok(new { fileUrl });
+    }
 }
