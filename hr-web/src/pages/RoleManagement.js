@@ -182,12 +182,19 @@ const RoleManagement = () => {
                 permissionType
             }));
 
+            console.log('=== SAVING PERMISSIONS DEBUG ===');
+            console.log('Role ID:', selectedRole.id);
+            console.log('Role Name:', selectedRole.name);
+            console.log('Formatted Permissions:', JSON.stringify(formattedPermissions, null, 2));
+            console.log('================================');
+
             await menuService.updateRoleMenus(selectedRole.id, formattedPermissions);
             alertService.showToast('Permissions updated successfully');
             // refreshMenus(); // Trigger sidebar update - logic moved to context or separate
             setShowPermissionsModal(false);
         } catch (error) {
             console.error('Error saving permissions:', error);
+            console.error('Error details:', error.response?.data);
             alertService.showToast('Failed to save permissions', 'error');
         }
     };

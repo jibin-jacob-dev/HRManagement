@@ -82,7 +82,9 @@ public class AuthController : ControllerBase
 
         var roles = await _userManager.GetRolesAsync(user);
 
-        // DEV BACKDOOR: Ensure jacobjibin1997@gmail.com is Admin
+        // DEV BACKDOOR REMOVED: Was forcing jacobjibin1997@gmail.com to always be Admin
+        // This was interfering with role management testing
+        /*
         if (model.Email == "jacobjibin1997@gmail.com" && !roles.Contains("Admin"))
         {
             if (!await _roleManager.RoleExistsAsync("Admin"))
@@ -91,6 +93,8 @@ public class AuthController : ControllerBase
             await _userManager.AddToRoleAsync(user, "Admin");
             roles = await _userManager.GetRolesAsync(user); // efficient enough for dev
         }
+        */
+        
         var token = await GenerateJwtToken(user);
 
         return Ok(new

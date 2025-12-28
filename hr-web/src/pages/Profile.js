@@ -31,14 +31,36 @@ const Profile = () => {
     const [isUploadingFile, setIsUploadingFile] = useState(false);
     const [isDragging, setIsDragging] = useState(false);
     const currentUser = authService.getCurrentUser();
-    const { canEdit } = usePermission('Employees');
+    
+    // Check multiple possible keys to cover different menu configurations
+    const permProfileRoute = usePermission('/profile');
+    const permProfileLabel = usePermission('Employee Profile'); 
+    const permProfileSimple = usePermission('Profile'); // "Profile" label
+    const permMyProfile = usePermission('My Profile'); // "My Profile" label
+    const permEmployees = usePermission('Employees'); // Fallback
+    
+    // Debug Access Logic
+    console.log('Profile Permission Debug:', {
+        '/profile': permProfileRoute,
+        'Employee Profile': permProfileLabel,
+        'Profile': permProfileSimple,
+        'My Profile': permMyProfile,
+        'Employees': permEmployees,
+        currentUser
+    });
+
+    // Use the most specific permission found that grants access (or fallback to basic route)
+    // Priority: Route > Exact Label > Parent Label
+    const { canEdit } = (permProfileRoute.permissionType ? permProfileRoute : 
+                        (permProfileLabel.permissionType ? permProfileLabel : 
+                        (permProfileSimple.permissionType ? permProfileSimple : 
+                        (permMyProfile.permissionType ? permMyProfile : permEmployees))));
+
     const isAdmin = authService.isAdmin();
 
     // Read-only logic:
-    // If viewing another user (userId different from currentUser), permission depends on 'canEdit' (Employees permission).
-    // If viewing self, typically allowed to edit (or handled by specific My Profile permissions, assuming Full for now).
-    const isViewingOther = userId && userId !== currentUser?.id;
-    const isReadOnly = isViewingOther ? !canEdit : false;
+    // Strictly enforced based on permission.
+    const isReadOnly = !canEdit;
 
     // Memoized initial values for modals to prevent Formik reset during re-renders (e.g. file uploads)
     const educationInitialValues = useMemo(() => ({

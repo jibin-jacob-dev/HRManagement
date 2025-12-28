@@ -101,6 +101,12 @@ const UserManagement = () => {
 
     const handleSave = async () => {
         try {
+            console.log('=== SAVING USER ===');
+            console.log('Mode:', modalMode);
+            console.log('User ID:', selectedUser?.id);
+            console.log('Form Data:', JSON.stringify(formData, null, 2));
+            console.log('===================');
+
             if (modalMode === 'add') {
                 await userService.createUser(formData);
                 alertService.showToast('User created successfully');
@@ -111,6 +117,8 @@ const UserManagement = () => {
             setShowModal(false);
             fetchData();
         } catch (error) {
+            console.error('Error saving user:', error);
+            console.error('Error response:', error.response?.data);
             const message = error.response?.data?.message || `Failed to ${modalMode} user`;
             alertService.showToast(message, 'error');
         }
@@ -354,18 +362,23 @@ const UserManagement = () => {
                             <Form.Group className="mb-3">
                                 <Form.Label>Roles</Form.Label>
                                 <div className="d-flex gap-2 flex-wrap">
-                                    {roles.map(role => (
-                                        <div key={role} className="form-check form-check-inline">
-                                            <input 
-                                                className="form-check-input" 
-                                                type="checkbox" 
-                                                id={`role-${role}`}
-                                                checked={formData.roles.includes(role)}
-                                                onChange={() => handleRoleToggle(role)}
-                                            />
-                                            <label className="form-check-label" htmlFor={`role-${role}`}>{role}</label>
-                                        </div>
-                                    ))}
+                                    {roles.map(role => {
+                                        const isSelected = formData.roles.includes(role);
+                                        return (
+                                            <div 
+                                                key={role} 
+                                                className={`px-3 py-1 rounded-2 border cursor-pointer transition-all ${
+                                                    isSelected 
+                                                        ? 'bg-primary text-white border-primary' 
+                                                        : 'bg-transparent text-secondary border-secondary-subtle hover-bg-light'
+                                                }`}
+                                                style={{ cursor: 'pointer', transition: 'all 0.2s ease', userSelect: 'none' }}
+                                                onClick={() => handleRoleToggle(role)}
+                                            >
+                                                {role}
+                                            </div>
+                                        );
+                                    })}
                                 </div>
                             </Form.Group>
 

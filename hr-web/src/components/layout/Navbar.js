@@ -82,7 +82,19 @@ const CustomNavbar = ({ toggleSidebar, isCollapsed }) => {
                     <Dropdown.Menu className="shadow-lg border-0 mt-3 p-2" style={{ minWidth: '320px', borderRadius: '12px' }}>
                              <div className="p-3 border-bottom mb-2">
                                 <h6 className="mb-0 fw-bold">{user?.firstName} {user?.lastName}</h6>
-                                <small className="text-muted">{user?.email}</small>
+                                <small className="text-muted d-block mb-2">{user?.email}</small>
+                                <div className="d-flex flex-wrap gap-1">
+                                    {(user?.roles || []).map((role, index) => (
+                                        <Badge 
+                                            key={index} 
+                                            bg="primary" 
+                                            className="fw-normal bg-opacity-10 text-primary border border-primary-subtle"
+                                            style={{ fontSize: '0.65rem' }}
+                                        >
+                                            {role}
+                                        </Badge>
+                                    ))}
+                                </div>
                             </div>
                             
                             <div className="px-3 py-2 border-bottom mb-2">

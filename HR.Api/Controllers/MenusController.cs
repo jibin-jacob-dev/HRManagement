@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using HR.Core.Data;
 using HR.Core.Models;
 using System.Security.Claims;
+using System.Text.Json.Serialization;
 
 namespace HR.Api.Controllers;
 
@@ -90,7 +91,9 @@ public class MenusController : ControllerBase
 
     public class RoleMenuDto
     {
+        [JsonPropertyName("menuId")]
         public int MenuId { get; set; }
+        [JsonPropertyName("permissionType")]
         public string PermissionType { get; set; } = "Full";
     }
 
@@ -111,6 +114,18 @@ public class MenusController : ControllerBase
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> UpdateRoleMenus(string roleId, [FromBody] List<RoleMenuDto> menuPermissions)
     {
+        Console.WriteLine("=== UPDATE ROLE MENUS RECEIVED ===");
+        Console.WriteLine($"Role ID: {roleId}");
+        Console.WriteLine($"Permissions Count: {menuPermissions?.Count ?? 0}");
+        if (menuPermissions != null)
+        {
+            foreach (var perm in menuPermissions)
+            {
+                Console.WriteLine($"  MenuId: {perm.MenuId}, PermissionType: {perm.PermissionType}");
+            }
+        }
+        Console.WriteLine("===================================");
+
         var role = await _context.Roles.FindAsync(roleId);
         if (role == null) return NotFound("Role not found");
 
@@ -134,7 +149,7 @@ public class MenusController : ControllerBase
     }
 
     [HttpGet("current-user")]
-    public async Task<ActionResult<IEnumerable<Menu>>> GetCurrentUserMenus()
+    public async Task<IActionResult> GetCurrentUserMenus()
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (userId == null) return Unauthorized();
@@ -145,60 +160,51 @@ public class MenusController : ControllerBase
             .Select(ur => ur.RoleId)
             .ToListAsync();
 
-        // Get menus for these roles
-        // We want distinct menus
-        var menus = await _context.RoleMenus
-            .Where(rm => userRoleIds.Contains(rm.RoleId))
-            .Select(rm => rm.Menu)
-            .Distinct()
-            .OrderBy(m => m.OrderIndex)
-            .ToListAsync();
-            
-        // If no menus assigned, return common fallback or empty?
-        // Let's return what we found. The frontend can handle hierarchy construction if needed, 
-        // or we can structure it here. For now, returning flat list of accessible menus is flexible.
-        // Actually, sidebar often expects a tree. But the Entity has Children collection.
-        // EF Core might not load Children unless Included or loaded.
-        // The above query `Select(rm => rm.Menu)` returns the Menu entity. 
-        // However, we want the tree structure.
-        
-        // Better approach: Get all IDs accessible, then fetch the full Menu entities with Children.
-        // We also need to know the permission type for each menu.
-        // If a user has multiple roles with conflicting permissions (e.g. one Read, one Full) for the same menu, "Full" should win.
-        
+        // Get all role-menu mappings for this user
         var userRoleMenus = await _context.RoleMenus
             .Where(rm => userRoleIds.Contains(rm.RoleId))
             .Select(rm => new { rm.MenuId, rm.PermissionType })
             .ToListAsync();
 
-        var accessibleMenuIds = userRoleMenus.Select(rm => rm.MenuId).Distinct().ToList();
+        // Create a permission lookup: MenuId -> Best Permission ("Full" wins over "Read")
+        var permissionLookup = userRoleMenus
+            .GroupBy(rm => rm.MenuId)
+            .ToDictionary(
+                g => g.Key,
+                g => g.Any(x => x.PermissionType == "Full") ? "Full" : "Read"
+            );
 
-        var allMenus = await _context.Menus.ToListAsync(); 
-        
-        var visibleMenus = allMenus.Where(m => accessibleMenuIds.Contains(m.Id)).Select(m => {
-            // Determine permission for this menu
-            var permissionsForMenu = userRoleMenus.Where(rm => rm.MenuId == m.Id).Select(rm => rm.PermissionType);
-            var effectivePermission = permissionsForMenu.Contains("Full") ? "Full" : "Read";
+        var accessibleMenuIds = permissionLookup.Keys.ToList();
+        var allMenus = await _context.Menus.ToListAsync();
+
+        // Recursive function to map menu with permissions
+        object MapMenuWithPermission(Menu menu)
+        {
+            var permission = permissionLookup.ContainsKey(menu.Id) ? permissionLookup[menu.Id] : "Read";
             
-            // We can't easily add a property to the Entity `Menu` without ignoring it in DB.
-            // But we can return an anonymous object or a DTO.
-            // For simplicity in this existing controller structure, let's use a dynamic approach or mapped DTO if possible.
-            // Or just append it to the response if the frontend expects it.
-            // Let's modify the return type to be dynamic or a specific DTO.
-            
-            return new 
+            var mappedChildren = menu.Children?
+                .Where(c => accessibleMenuIds.Contains(c.Id))
+                .Select(c => MapMenuWithPermission(c))
+                .ToList();
+
+            return new
             {
-                m.Id,
-                m.Label,
-                m.Route,
-                m.Icon,
-                m.ParentId,
-                m.OrderIndex,
-                m.Children, // Note: Children won't be recursively mapped with permissions here easily without separate recursion
-                PermissionType = effectivePermission
+                menu.Id,
+                menu.Label,
+                menu.Route,
+                menu.Icon,
+                menu.ParentId,
+                menu.OrderIndex,
+                Children = mappedChildren ?? new List<object>(),
+                PermissionType = permission
             };
-        }).ToList();
-        
+        }
+
+        var visibleMenus = allMenus
+            .Where(m => accessibleMenuIds.Contains(m.Id))
+            .Select(m => MapMenuWithPermission(m))
+            .ToList();
+
         return Ok(visibleMenus);
     }
 
