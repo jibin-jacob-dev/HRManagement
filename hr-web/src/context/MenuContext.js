@@ -18,6 +18,10 @@ export const MenuProvider = ({ children }) => {
     const fetchMenus = useCallback(async () => {
         try {
             const userMenus = await menuService.getCurrentUserMenus();
+            console.log('=== MENUS LOADED FROM API ===');
+            console.log('Count:', userMenus?.length);
+            console.log('Menus:', JSON.stringify(userMenus, null, 2));
+            console.log('=============================');
             if (Array.isArray(userMenus)) {
                 setMenus(userMenus);
             }

@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using HR.Core.Models;
 using System.Security.Claims;
+using System.Text.Json.Serialization;
 
 namespace HR.Api.Controllers;
 
@@ -125,6 +126,14 @@ public class UsersController : ControllerBase
     [HttpPut("{id}")]
     public async Task<IActionResult> UpdateUser(string id, [FromBody] UserUpdateDto model)
     {
+        Console.WriteLine("=== UPDATE USER RECEIVED ===");
+        Console.WriteLine($"User ID: {id}");
+        Console.WriteLine($"FirstName: {model.FirstName}");
+        Console.WriteLine($"LastName: {model.LastName}");
+        Console.WriteLine($"IsActive: {model.IsActive}");
+        Console.WriteLine($"Roles: {(model.Roles != null ? string.Join(", ", model.Roles) : "NULL")}");
+        Console.WriteLine("============================");
+
         var user = await _userManager.FindByIdAsync(id);
         if (user == null)
             return NotFound();
@@ -177,6 +186,7 @@ public class UserUpdateDto
     public string FirstName { get; set; } = string.Empty;
     public string LastName { get; set; } = string.Empty;
     public bool IsActive { get; set; }
+    [JsonPropertyName("roles")]
     public List<string>? Roles { get; set; }
 }
 
@@ -186,5 +196,6 @@ public class UserCreateDto
     public string FirstName { get; set; } = string.Empty;
     public string LastName { get; set; } = string.Empty;
     public string Password { get; set; } = string.Empty;
+    [JsonPropertyName("roles")]
     public List<string>? Roles { get; set; }
 }
