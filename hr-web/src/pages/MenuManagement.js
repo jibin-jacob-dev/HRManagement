@@ -8,12 +8,15 @@ import { useGridSettings } from '../hooks/useGridSettings';
 import GridContainer from '../components/common/GridContainer';
 import alertService from '../services/alertService';
 
+// Custom Styles
+import './MenuManagement.css';
+
 // Register AG Grid Modules
 ModuleRegistry.registerModules([AllCommunityModule]);
 
 const MenuManagement = () => {
     const { refreshMenus } = useMenu();
-    const { gridTheme, defaultColDef } = useGridSettings();
+    const { gridTheme, defaultColDef, suppressCellFocus } = useGridSettings();
     const [menus, setMenus] = useState([]);
     const [quickFilterText, setQuickFilterText] = useState('');
     const [loading, setLoading] = useState(true);
@@ -35,7 +38,25 @@ const MenuManagement = () => {
         try {
             setLoading(true);
             const data = await menuService.getMenus();
-            setMenus(Array.isArray(data) ? data : []);
+            const menusArray = Array.isArray(data) ? data : [];
+            
+            // Function to build hierarchy and then flatten for the grid
+            const buildHierarchicalList = (items, parentId = null, level = 0) => {
+                let result = [];
+                const filtered = items
+                    .filter(item => item.parentId === parentId)
+                    .sort((a, b) => (a.orderIndex || 0) - (b.orderIndex || 0));
+                
+                filtered.forEach(item => {
+                    result.push({ ...item, level });
+                    const children = buildHierarchicalList(items, item.id, level + 1);
+                    result = result.concat(children);
+                });
+                return result;
+            };
+
+            const hierarchicalData = buildHierarchicalList(menusArray);
+            setMenus(hierarchicalData);
         } catch (error) {
             console.error('Error fetching menus:', error);
             alertService.showToast('Failed to fetch menus', 'error');
@@ -110,14 +131,32 @@ const MenuManagement = () => {
     };
 
     const columnDefs = useMemo(() => [
-        { field: 'label', headerName: 'Label', flex: 1, sortable: true, filter: true },
+        { 
+            field: 'label', 
+            headerName: 'Label', 
+            flex: 1.5, 
+            sortable: false, // Hierarchy is our primary sort
+            filter: true,
+            cellRenderer: (params) => {
+                const level = params.data.level || 0;
+                const isChild = level > 0;
+                return (
+                    <div className="d-flex align-items-center h-100" style={{ paddingLeft: `${level * 25}px` }}>
+                        {isChild && <i className="fas fa-level-up-alt fa-rotate-90 text-muted me-2 opacity-50"></i>}
+                        <span className={isChild ? 'text-secondary-emphasis' : 'fw-bold'}>
+                            {params.value}
+                        </span>
+                    </div>
+                );
+            }
+        },
         { field: 'route', headerName: 'Route', flex: 1 },
-        { field: 'icon', headerName: 'Icon', width: 150, cellRenderer: params => params.value ? <i className={params.value}></i> : '-' },
-        { field: 'orderIndex', headerName: 'Order', width: 100, sortable: true },
+        { field: 'icon', headerName: 'Icon', width: 100, cellRenderer: params => params.value ? <i className={params.value}></i> : '-' },
+        { field: 'orderIndex', headerName: 'Order', width: 80, sortable: true },
         { 
             field: 'parentId', 
             headerName: 'Parent', 
-            width: 150,
+            flex: 1,
             valueFormatter: params => {
                 if (!params.value) return '-';
                 const parent = menus.find(m => m.id === params.value);
@@ -153,7 +192,7 @@ const MenuManagement = () => {
     ], [menus]);
 
     return (
-        <Container fluid className="menu-management-container page-animate">
+        <Container fluid className="menu-management-container page-animate p-0">
                 <div className="d-flex justify-content-between align-items-end mb-4">
                     <div>
                         <h2 className="mb-1 fw-bold">Menu Management</h2>
@@ -188,6 +227,7 @@ const MenuManagement = () => {
                         rowHeight={50}
                         headerHeight={50}
                         theme={gridTheme}
+                        suppressCellFocus={suppressCellFocus}
                         quickFilterText={quickFilterText}
                     />
                 </GridContainer>

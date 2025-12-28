@@ -131,4 +131,144 @@ export const menuService = {
     }
 };
 
+export const employeeProfileService = {
+    getProfile: async () => {
+        const response = await api.get('/employeeprofile');
+        return response.data;
+    },
+    updatePersonalInfo: async (data) => {
+        const response = await api.put('/employeeprofile/personal', data);
+        return response.data;
+    },
+    uploadPicture: async (formData) => {
+        const response = await api.post('/employeeprofile/picture', formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data'
+            }
+        });
+        return response.data;
+    },
+    updateProfessionalInfo: async (data) => {
+        const response = await api.put('/employeeprofile/professional', data);
+        return response.data;
+    },
+    addExperience: async (data) => {
+        const response = await api.post('/employeeprofile/experience', data);
+        return response.data;
+    },
+    deleteExperience: async (id) => {
+        const response = await api.delete(`/employeeprofile/remove-experience/${id}`);
+        return response.data;
+    },
+    updateExperience: async (id, data) => {
+        const response = await api.put(`/employeeprofile/experience/${id}`, data);
+        return response.data;
+    },
+    addEducation: async (data) => {
+        const response = await api.post('/employeeprofile/education', data);
+        return response.data;
+    },
+    deleteEducation: async (id) => {
+        const response = await api.delete(`/employeeprofile/remove-education/${id}`);
+        return response.data;
+    },
+    updateEducation: async (id, data) => {
+        const response = await api.put(`/employeeprofile/education/${id}`, data);
+        return response.data;
+    },
+    addCertification: async (data) => {
+        const response = await api.post('/employeeprofile/certification', data);
+        return response.data;
+    },
+    deleteCertification: async (id) => {
+        const response = await api.delete(`/employeeprofile/remove-certification/${id}`);
+        return response.data;
+    },
+    updateCertification: async (id, data) => {
+        const response = await api.put(`/employeeprofile/certification/${id}`, data);
+        return response.data;
+    },
+    uploadCertificate: async (formData) => {
+        const response = await api.post('/employeeprofile/upload-certification', formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data'
+            }
+        });
+        return response.data;
+    },
+    getEmployeeList: async () => {
+        const response = await api.get('/employees/list');
+        return response.data;
+    }
+};
+
+export const positionService = {
+    getPositions: async () => {
+        const response = await api.get('/positions');
+        return response.data;
+    },
+    getPosition: async (id) => {
+        const response = await api.get(`/positions/${id}`);
+        return response.data;
+    },
+    createPosition: async (position) => {
+        const response = await api.post('/positions', position);
+        return response.data;
+    },
+    updatePosition: async (id, position) => {
+        const response = await api.put(`/positions/${id}`, position);
+        return response.data;
+    },
+    deletePosition: async (id) => {
+        const response = await api.delete(`/positions/${id}`);
+        return response.data;
+    }
+};
+
+export const levelService = {
+    getLevels: async () => {
+        const response = await api.get('/levels');
+        return response.data;
+    },
+    getLevel: async (id) => {
+        const response = await api.get(`/levels/${id}`);
+        return response.data;
+    },
+    createLevel: async (level) => {
+        const response = await api.post('/levels', level);
+        return response.data;
+    },
+    updateLevel: async (id, level) => {
+        const response = await api.put(`/levels/${id}`, level);
+        return response.data;
+    },
+    deleteLevel: async (id) => {
+        const response = await api.delete(`/levels/${id}`);
+        return response.data;
+    }
+};
+
+export const departmentService = {
+    getDepartments: async () => {
+        const response = await api.get('/departments');
+        return response.data;
+    },
+    getDepartment: async (id) => {
+        const response = await api.get(`/departments/${id}`);
+        return response.data;
+    },
+    createDepartment: async (department) => {
+        const response = await api.post('/departments', department);
+        return response.data;
+    },
+    updateDepartment: async (id, department) => {
+        const response = await api.put(`/departments/${id}`, department);
+        return response.data;
+    },
+    deleteDepartment: async (id) => {
+        const response = await api.delete(`/departments/${id}`);
+        return response.data;
+    }
+};
+
 export default api;

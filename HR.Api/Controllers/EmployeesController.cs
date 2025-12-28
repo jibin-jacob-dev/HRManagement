@@ -43,6 +43,21 @@ public class EmployeesController : ControllerBase
         return employee;
     }
 
+    // GET: api/Employees/list
+    [HttpGet("list")]
+    public async Task<ActionResult<IEnumerable<object>>> GetEmployeeList()
+    {
+        var employees = await _context.Employees
+            .Select(e => new {
+                e.EmployeeId,
+                e.FirstName,
+                e.LastName,
+                e.ProfilePicture
+            })
+            .ToListAsync();
+        return Ok(employees);
+    }
+
     // POST: api/Employees
     [HttpPost]
     [Authorize(Roles = "Admin,HR Manager")]

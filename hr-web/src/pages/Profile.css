@@ -1,0 +1,662 @@
+:root {
+    --profile-border: #fff;
+    --profile-text: #212529;
+    --profile-nav-hover-bg: #f8f9fa;
+    --profile-nav-hover-color: #4e54c8;
+    --profile-nav-active-bg: #eef2ff;
+    --profile-nav-active-color: #4e54c8;
+    --profile-primary: #4e54c8;
+}
+
+[data-bs-theme='dark'] {
+    --profile-border: var(--bs-card-bg);
+    --profile-text: #fff;
+    --profile-nav-hover-bg: #2b2b40;
+    --profile-nav-hover-color: #ffffff;
+    --profile-nav-active-bg: #323248;
+    --profile-nav-active-color: #ffffff;
+    --profile-primary: #4e54c8;
+}
+
+.profile-container {
+    animation: fadeIn 0.5s ease;
+    color: var(--profile-text);
+}
+
+.profile-header {
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.profile-banner {
+    height: 180px;
+    background: linear-gradient(135deg, #4e54c8 0%, #8f94fb 100%);
+    position: relative;
+}
+
+.profile-info-wrapper {
+    display: flex;
+    align-items: flex-start;
+    padding: 0 2rem 1.5rem 2rem;
+    margin-top: -60px;
+    position: relative;
+    z-index: 2;
+    gap: 1.5rem;
+}
+
+.profile-basic-info {
+    padding-top: 70px;
+}
+
+.profile-picture-container {
+    padding: 5px;
+    background: var(--bs-card-bg);
+    border-radius: 50%;
+}
+
+.profile-picture-rounded {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    overflow: hidden;
+    position: relative;
+    border: 4px solid var(--profile-border);
+}
+
+.profile-picture-rounded img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.edit-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.4);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    cursor: pointer;
+}
+
+.profile-picture-rounded:hover .edit-overlay {
+    opacity: 1;
+}
+
+.profile-sidebar-nav .nav-link {
+    color: #6c757d;
+    padding: 12px 20px;
+    font-weight: 500;
+    border-left: 3px solid transparent;
+    transition: all 0.3s ease;
+}
+
+.profile-sidebar-nav .nav-link:hover {
+    background: var(--profile-nav-hover-bg);
+    color: var(--profile-nav-hover-color);
+}
+
+.profile-sidebar-nav .nav-link.active {
+    background: var(--profile-nav-active-bg);
+    color: var(--profile-nav-active-color);
+    border-left-color: var(--profile-primary);
+}
+
+.datepicker-wrapper {
+    display: block;
+    width: 100%;
+    position: relative;
+}
+
+.datepicker-wrapper .react-datepicker-wrapper,
+.datepicker-wrapper .react-datepicker__input-container {
+    display: block;
+    width: 100%;
+}
+
+.datepicker-wrapper .form-control {
+    cursor: pointer;
+    padding-right: 35px !important; /* Space for the icon */
+}
+
+.datepicker-wrapper i {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    right: 12px;
+    z-index: 10;
+    pointer-events: none;
+    font-size: 0.9rem;
+}
+
+.content-fade-in {
+    animation: slideUp 0.4s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+[data-bs-theme='dark'] .profile-name {
+    color: #ffffff !important;
+}
+
+[data-bs-theme='dark'] .text-muted {
+    color: #a1a5b7 !important;
+}
+
+/* React DatePicker Premium Styling */
+.react-datepicker {
+    border: none !important;
+    border-radius: 16px !important;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.15) !important;
+    font-family: inherit !important;
+    padding: 8px !important;
+}
+
+.react-datepicker__header {
+    background-color: #f8f9fa !important;
+    border-bottom: 1px solid #eee !important;
+    border-top-left-radius: 12px !important;
+    border-top-right-radius: 12px !important;
+    padding: 15px 10px !important;
+}
+
+.react-datepicker__current-month {
+    font-weight: 700 !important;
+    font-size: 1.1rem !important;
+    margin-bottom: 10px !important;
+}
+
+.react-datepicker__day-names {
+    margin-top: 10px !important;
+    display: flex !important;
+    justify-content: center !important;
+}
+
+.react-datepicker__day-name {
+    width: 2.2rem !important;
+    line-height: 2.2rem !important;
+    margin: 0.15rem !important;
+    font-weight: 600 !important;
+    color: #6c757d !important;
+}
+
+.react-datepicker__day {
+    width: 2.2rem !important;
+    line-height: 2.2rem !important;
+    border-radius: 8px !important;
+    margin: 0.15rem !important;
+    transition: all 0.2s ease;
+}
+
+.react-datepicker__day--selected,
+.react-datepicker__day--keyboard-selected {
+    background-color: var(--profile-primary) !important;
+    color: #fff !important;
+    font-weight: 600 !important;
+}
+
+.react-datepicker__navigation {
+    top: 18px !important;
+}
+
+.react-datepicker__navigation--previous {
+    left: 15px !important;
+}
+
+.react-datepicker__navigation--next {
+    right: 15px !important;
+}
+
+/* DatePicker Dark Mode Adaptation */
+[data-bs-theme='dark'] .react-datepicker {
+    background-color: var(--bs-card-bg) !important;
+    color: #fff !important;
+    border: 1px solid var(--bs-border-color) !important;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.45) !important;
+}
+
+[data-bs-theme='dark'] .react-datepicker__header {
+    background-color: var(--bs-tertiary-bg) !important;
+    border-bottom: 1px solid var(--bs-border-color) !important;
+}
+
+[data-bs-theme='dark'] .react-datepicker__current-month,
+[data-bs-theme='dark'] .react-datepicker__day-name,
+[data-bs-theme='dark'] .react-datepicker__day {
+    color: #e1e3ea !important;
+}
+
+[data-bs-theme='dark'] .react-datepicker__day:hover {
+    background-color: var(--bs-secondary-bg) !important;
+    color: #fff !important;
+}
+
+[data-bs-theme='dark'] .react-datepicker__day--outside-month {
+    color: #4b4b5a !important;
+}
+
+[data-bs-theme='dark'] .react-datepicker__navigation-icon::before {
+    border-color: #fff !important;
+}
+
+/* popper triangle dark mode */
+[data-bs-theme='dark'] .react-datepicker__triangle::before,
+[data-bs-theme='dark'] .react-datepicker__triangle::after {
+    border-bottom-color: var(--bs-tertiary-bg) !important;
+    fill: var(--bs-tertiary-bg) !important;
+    stroke: var(--bs-tertiary-bg) !important;
+}
+
+/* Fix year dropdown dark mode */
+[data-bs-theme='dark'] .react-datepicker__year-read-view--down-arrow,
+[data-bs-theme='dark'] .react-datepicker__month-read-view--down-arrow {
+    border-color: #ccc !important;
+    top: 5px !important;
+}
+
+[data-bs-theme='dark'] .react-datepicker__year-dropdown,
+[data-bs-theme='dark'] .react-datepicker__month-dropdown,
+[data-bs-theme='dark'] .react-datepicker__month-year-dropdown {
+    background-color: var(--bs-card-bg) !important;
+    border: 1px solid var(--bs-border-color) !important;
+    color: #fff !important;
+    border-radius: 8px !important;
+    padding: 5px 0 !important;
+}
+
+[data-bs-theme='dark'] .react-datepicker__year-option:hover,
+[data-bs-theme='dark'] .react-datepicker__month-option:hover {
+    background-color: var(--bs-secondary-bg) !important;
+}
+
+/* Center the year select view */
+.react-datepicker__year-read-view {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 5px !important;
+    padding: 4px 12px !important;
+    background: rgba(255,255,255,0.05) !important;
+    border-radius: 6px !important;
+}
+
+/* Fix native select dropdowns in dark mode */
+[data-bs-theme='dark'] .react-datepicker__year-select,
+[data-bs-theme='dark'] .react-datepicker__month-select {
+    background-color: var(--bs-tertiary-bg) !important;
+    color: #fff !important;
+    border: 1px solid var(--bs-border-color) !important;
+    border-radius: 4px !important;
+    padding: 2px 5px !important;
+    outline: none !important;
+    cursor: pointer !important;
+}
+
+[data-bs-theme='dark'] .react-datepicker__year-select option,
+[data-bs-theme='dark'] .react-datepicker__month-select option {
+    background-color: var(--bs-card-bg) !important;
+    color: #fff !important;
+}
+
+
+/* Premium Save Button Styles */
+.btn-premium-save {
+    padding: 6px 16px;
+    border-radius: 8px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    background: transparent;
+    color: #10b981;
+    border: 2px solid #10b981;
+    font-weight: 600;
+    font-size: 0.85rem;
+    gap: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: none;
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.btn-premium-save:hover:not(:disabled) {
+    background: #10b981;
+    color: #fff !important;
+}
+
+.btn-premium-save:active:not(:disabled) {
+    opacity: 0.8;
+}
+
+.btn-premium-save:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+[data-bs-theme='dark'] .btn-premium-save {
+    border-color: #10b981;
+    color: #10b981;
+}
+
+/* Experience Timeline Styles */
+.experience-timeline {
+    position: relative;
+    padding-left: 30px;
+    margin-top: 10px;
+}
+
+.experience-timeline::before {
+    content: '';
+    position: absolute;
+    left: 14px;
+    top: 13px;
+    bottom: 0;
+    width: 2px;
+    background: #e9ecef;
+}
+
+[data-bs-theme='dark'] .experience-timeline::before {
+    background: #323248;
+}
+
+.timeline-item {
+    position: relative;
+    margin-bottom: 30px;
+}
+
+.timeline-dot {
+    position: absolute;
+    left: -21px;
+    top: 7px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #4e54c8;
+    border: 3px solid #fff;
+    z-index: 1;
+    box-shadow: 0 0 0 4px rgba(78, 84, 200, 0.1);
+}
+
+[data-bs-theme='dark'] .timeline-dot {
+    border-color: #1e1e2d;
+}
+
+.timeline-content {
+    background: transparent;
+}
+
+.timeline-date {
+    font-size: 0.85rem;
+    color: #6c757d;
+    font-weight: 600;
+    margin-bottom: 5px;
+}
+
+.timeline-title {
+    font-weight: 700;
+    font-size: 1.1rem;
+    margin-bottom: 2px;
+}
+
+.timeline-company {
+    font-weight: 600;
+    color: #4e54c8;
+    margin-bottom: 8px;
+    display: block;
+}
+
+.timeline-description {
+    font-size: 0.95rem;
+    color: #4b4b5a;
+    line-height: 1.6;
+}
+
+[data-bs-theme='dark'] .timeline-description {
+    color: #a1a5b7;
+}
+
+.btn-delete-timeline,
+.btn-edit-timeline {
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.timeline-item:hover .btn-delete-timeline,
+.timeline-item:hover .btn-edit-timeline {
+    opacity: 1;
+}
+
+.timeline-empty-state {
+    background: #f8f9fa;
+    border-color: #dee2e6 !important;
+}
+
+[data-bs-theme='dark'] .timeline-empty-state {
+    background: rgba(255, 255, 255, 0.02);
+    border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Modal Premium Styling */
+.modal-content {
+    border-radius: 20px !important;
+    border: none !important;
+}
+
+.modal-header {
+    border-bottom: 1px solid rgba(0,0,0,0.05) !important;
+    padding: 1.5rem !important;
+}
+
+[data-bs-theme='dark'] .modal-header {
+    border-bottom-color: rgba(255,255,255,0.05) !important;
+}
+
+/* Certification Card Premium Styles */
+.certification-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    background: var(--bs-card-bg);
+}
+
+.cert-actions-wrapper {
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.certification-card:hover .cert-actions-wrapper {
+    opacity: 1;
+}
+
+.hover-lift:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1) !important;
+}
+
+.cert-icon-wrapper {
+    width: 54px;
+    height: 54px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.certification-card:hover .cert-icon-wrapper {
+    background-color: var(--profile-primary) !important;
+    color: #fff !important;
+    transform: scale(1.1);
+}
+
+.btn-premium-view-cert {
+    border: 1px solid var(--profile-primary);
+    color: var(--profile-primary);
+    background: transparent;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.btn-premium-view-cert:hover {
+    background: var(--profile-primary);
+    color: #fff !important;
+}
+
+.no-caret::after {
+    display: none !important;
+}
+
+/* Upload Section Styling */
+.cert-upload-section {
+    transition: all 0.3s ease;
+    background: rgba(78, 84, 200, 0.03);
+    border: 2px dashed #dee2e6 !important;
+    min-height: 200px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+[data-bs-theme='dark'] .cert-upload-section {
+    background: rgba(255, 255, 255, 0.03);
+    border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+.cert-upload-section.dragging {
+    border-color: var(--profile-primary) !important;
+    background: rgba(78, 84, 200, 0.1);
+    transform: scale(1.02);
+}
+
+.cert-upload-section:hover {
+    border-color: var(--profile-primary) !important;
+    background: rgba(78, 84, 200, 0.05);
+}
+
+.uploaded-file-info {
+    animation: fadeIn 0.4s ease;
+    transition: all 0.3s ease;
+    border: 1px solid transparent;
+}
+
+.cert-preview-wrapper {
+    display: inline-block;
+}
+
+.cert-image-preview {
+    border: 3px solid #fff;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    transition: transform 0.3s ease;
+}
+
+.cert-image-preview:hover {
+    transform: scale(1.05);
+}
+
+.cert-file-icon {
+    width: 80px;
+    height: 80px;
+    background: #fff;
+    border-radius: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.08);
+    transition: all 0.3s ease;
+}
+
+[data-bs-theme='dark'] .cert-file-icon {
+    background: rgba(255,255,255,0.05);
+}
+
+.cert-file-icon:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 24px rgba(0,0,0,0.12);
+}
+
+[data-bs-theme='dark'] .cert-image-preview {
+    border-color: rgba(255,255,255,0.1);
+}
+
+.smaller {
+    font-size: 0.75rem;
+}
+
+/* Mobile Adjustments */
+@media (max-width: 768px) {
+    .profile-info-wrapper {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        padding-top: 10px;
+    }
+    
+    .profile-picture-rounded {
+        width: 120px;
+        height: 120px;
+    }
+    
+    .profile-basic-info {
+        padding-top: 0;
+    }
+    
+    .profile-sidebar-nav {
+        flex-direction: row;
+        overflow-x: auto;
+        white-space: nowrap;
+        padding-bottom: 5px;
+    }
+    
+    .profile-sidebar-nav .nav-link {
+        padding: 10px 15px;
+        border-left: none;
+        border-bottom: 3px solid transparent;
+    }
+    
+    .profile-sidebar-nav .nav-link.active {
+        border-bottom-color: var(--profile-primary);
+    }
+}
+
+/* Premium Add Button Styles */
+.btn-premium-add {
+    padding: 6px 16px;
+    border-radius: 8px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    background: transparent;
+    color: var(--profile-primary);
+    border: 2px solid var(--profile-primary);
+    font-weight: 600;
+    font-size: 0.85rem;
+    gap: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: none;
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.btn-premium-add:hover:not(:disabled) {
+    background: var(--profile-primary);
+    color: #fff !important;
+}
+
+.btn-premium-add:active:not(:disabled) {
+    opacity: 0.8;
+}
+
+[data-bs-theme='dark'] .btn-premium-add {
+    border-color: var(--profile-primary);
+    color: var(--profile-primary);
+}

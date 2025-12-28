@@ -16,7 +16,7 @@ ModuleRegistry.registerModules([AllCommunityModule]);
 
 const RoleManagement = () => {
     const { refreshMenus } = useMenu();
-    const { gridTheme, defaultColDef } = useGridSettings();
+    const { gridTheme, defaultColDef, suppressCellFocus } = useGridSettings();
     const [roles, setRoles] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
@@ -278,6 +278,7 @@ const RoleManagement = () => {
                             rowHeight={55}
                             headerHeight={50}
                             theme={gridTheme}
+                            suppressCellFocus={suppressCellFocus}
                         />
                     )}
                 </GridContainer>

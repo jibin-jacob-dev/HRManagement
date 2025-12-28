@@ -16,7 +16,7 @@ ModuleRegistry.registerModules([AllCommunityModule]);
 
 const UserManagement = () => {
     const { isDarkMode } = useGridSettings();
-    const { gridTheme, defaultColDef } = useGridSettings();
+    const { gridTheme, defaultColDef, suppressCellFocus } = useGridSettings();
     const [users, setUsers] = useState([]);
     const [roles, setRoles] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -114,6 +114,36 @@ const UserManagement = () => {
         }
     };
 
+    const handleStatusToggle = async (user) => {
+        const newStatus = !user.isActive;
+        const confirmResult = await alertService.showConfirm(
+            `${newStatus ? 'Activate' : 'Deactivate'} User?`,
+            `Are you sure you want to ${newStatus ? 'activate' : 'deactivate'} account for ${user.firstName} ${user.lastName}?`,
+            `Yes, ${newStatus ? 'Activate' : 'Deactivate'}`,
+            newStatus ? 'question' : 'warning'
+        );
+
+        if (confirmResult) {
+            try {
+                // Prepare update payload (preserving other fields)
+                const updateData = {
+                    firstName: user.firstName,
+                    lastName: user.lastName,
+                    email: user.email,
+                    isActive: newStatus,
+                    roles: user.roles || []
+                };
+
+                await userService.updateUser(user.id, updateData);
+                alertService.showToast(`User ${newStatus ? 'activated' : 'deactivated'} successfully`);
+                fetchData();
+            } catch (error) {
+                console.error('Error toggling status:', error);
+                alertService.showToast('Failed to update status', 'error');
+            }
+        }
+    };
+
     const handleRoleToggle = (role) => {
         const currentRoles = Array.isArray(formData.roles) ? formData.roles : [];
         const updatedRoles = currentRoles.includes(role)
@@ -175,8 +205,9 @@ const UserManagement = () => {
                 <div className="d-flex h-100 align-items-center">
                     <Badge 
                         bg={params.value ? 'success' : 'secondary'} 
-                        className={`rounded-pill px-3 ${params.value ? 'bg-opacity-10 text-success border border-success' : 'bg-opacity-10 text-secondary border border-secondary'}`}
+                        className={`rounded-pill px-3 cursor-pointer status-badge-toggle ${params.value ? 'bg-opacity-10 text-success border border-success' : 'bg-opacity-10 text-secondary border border-secondary'}`}
                         style={{ fontSize: '0.7rem' }}
+                        onClick={() => handleStatusToggle(params.data)}
                     >
                         {params.value ? 'Active' : 'Inactive'}
                     </Badge>
@@ -205,7 +236,7 @@ const UserManagement = () => {
     const defaultColDefMemo = useMemo(() => defaultColDef, [defaultColDef]);
 
     return (
-        <Container fluid className="user-management-container page-animate">
+        <Container fluid className="user-management-container page-animate p-0">
                 <div className="d-flex justify-content-between align-items-end mb-4">
                     <div>
                         <h2 className="mb-1 fw-bold">User Management</h2>
@@ -250,6 +281,7 @@ const UserManagement = () => {
                             rowHeight={60}
                             headerHeight={52}
                             theme={gridTheme}
+                            suppressCellFocus={suppressCellFocus}
                         />
                     )}
                 </GridContainer>
