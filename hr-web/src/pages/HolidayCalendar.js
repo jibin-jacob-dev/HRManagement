@@ -31,12 +31,20 @@ const HolidayCalendar = () => {
         date: '',
         description: ''
     });
+    const [calendarDate, setCalendarDate] = useState(new Date());
 
     const { canEdit } = usePermission('Holiday Calendar');
     const { gridTheme, defaultColDef, suppressCellFocus } = useGridSettings();
 
     useEffect(() => {
         fetchData();
+    }, [selectedYear]);
+
+    // Update calendar date when year changes via dropdown
+    useEffect(() => {
+        if (calendarDate.getFullYear() !== selectedYear) {
+            setCalendarDate(new Date(selectedYear, calendarDate.getMonth(), 1));
+        }
     }, [selectedYear]);
 
     const fetchData = async () => {
@@ -48,11 +56,18 @@ const HolidayCalendar = () => {
         }
     };
 
+    const handleNavigate = (newDate) => {
+        setCalendarDate(newDate);
+        if (newDate.getFullYear() !== selectedYear) {
+            setSelectedYear(newDate.getFullYear());
+        }
+    };
+
     const handleAdd = () => {
         setEditingHoliday(null);
         setFormData({
             name: '',
-            date: '',
+            date: new Date(),
             description: ''
         });
         setShowModal(true);
@@ -75,7 +90,7 @@ const HolidayCalendar = () => {
                 date: moment(formData.date).format('YYYY-MM-DD')
             };
             if (editingHoliday) {
-                await publicHolidayService.updatePublicHoliday(editingHoliday.id, payload);
+                await publicHolidayService.updatePublicHoliday(editingHoliday.publicHolidayId, payload);
                 alertService.showToast('Holiday updated successfully');
             } else {
                 await publicHolidayService.createPublicHoliday(payload);
@@ -89,7 +104,13 @@ const HolidayCalendar = () => {
     };
 
     const handleDelete = async (id) => {
-        if (window.confirm('Are you sure you want to delete this holiday?')) {
+        const confirmed = await alertService.showConfirm(
+            'Delete Holiday?',
+            'Are you sure you want to delete this holiday? This action cannot be undone.',
+            'Yes, Delete It'
+        );
+
+        if (confirmed) {
             try {
                 await publicHolidayService.deletePublicHoliday(id);
                 alertService.showToast('Holiday deleted successfully');
@@ -150,7 +171,7 @@ const HolidayCalendar = () => {
                             <Button
                                 variant="link"
                                 className="p-0 grid-action-btn text-danger"
-                                onClick={() => handleDelete(params.data.id)}
+                                onClick={() => handleDelete(params.data.publicHolidayId)}
                                 title="Delete Holiday"
                             >
                                 <i className="fas fa-trash-alt"></i>
@@ -165,7 +186,7 @@ const HolidayCalendar = () => {
     // Calendar events for react-big-calendar
     const calendarEvents = useMemo(() => {
         return holidays.map(holiday => ({
-            id: holiday.id,
+            id: holiday.publicHolidayId,
             title: holiday.name,
             start: new Date(holiday.date),
             end: new Date(holiday.date),
@@ -195,15 +216,40 @@ const HolidayCalendar = () => {
     const eventStyleGetter = (event) => {
         return {
             style: {
-                backgroundColor: '#dc3545',
-                borderRadius: '5px',
+                backgroundColor: 'var(--bs-primary)',
+                borderRadius: '6px',
                 opacity: 0.9,
                 color: 'white',
-                border: '0px',
-                display: 'block'
+                border: 'none',
+                display: 'block',
+                padding: '0', // Container padding removed to let custom component fill space
+                fontSize: '0.85rem',
+                fontWeight: '500',
+                boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                height: '100%',
+                overflow: 'hidden'
             }
         };
     };
+
+    // Custom Component to render the event with a delete icon
+    const CalendarEvent = ({ event }) => (
+        <div className="d-flex align-items-center justify-content-between px-2 h-100 calendar-event-stripe">
+            <span className="text-truncate me-1">{event.title}</span>
+            {canEdit && (
+                <button 
+                    className="btn btn-link p-0 text-white opacity-75 hover-opacity-100 calendar-stripe-delete"
+                    onClick={(e) => {
+                        e.stopPropagation(); // Prevent opening the modal
+                        handleDelete(event.id);
+                    }}
+                    title="Delete Holiday"
+                >
+                    <i className="fas fa-times-circle" style={{ fontSize: '0.9rem' }}></i>
+                </button>
+            )}
+        </div>
+    );
 
     return (
         <Container fluid className="holiday-calendar-container page-animate p-0">
@@ -285,10 +331,15 @@ const HolidayCalendar = () => {
                             startAccessor="start"
                             endAccessor="end"
                             style={{ height: '100%' }}
+                            date={calendarDate}
+                            onNavigate={handleNavigate}
                             onSelectSlot={handleSelectSlot}
                             onSelectEvent={handleSelectEvent}
                             selectable={canEdit}
                             eventPropGetter={eventStyleGetter}
+                            components={{
+                                event: CalendarEvent
+                            }}
                             views={['month', 'agenda']}
                             defaultView="month"
                         />
@@ -350,6 +401,18 @@ const HolidayCalendar = () => {
                         <Button variant="link" className="text-muted text-decoration-none me-auto" onClick={() => setShowModal(false)}>
                             Cancel
                         </Button>
+                        {editingHoliday && canEdit && (
+                            <Button 
+                                variant="outline-danger" 
+                                className="px-4 me-2 border-2"
+                                onClick={() => {
+                                    setShowModal(false);
+                                    handleDelete(editingHoliday.publicHolidayId);
+                                }}
+                            >
+                                <i className="fas fa-trash-alt me-2"></i> Delete
+                            </Button>
+                        )}
                         <Button variant="primary" type="submit" className="px-4 shadow-sm">
                             {editingHoliday ? 'Save Changes' : 'Create Holiday'}
                         </Button>

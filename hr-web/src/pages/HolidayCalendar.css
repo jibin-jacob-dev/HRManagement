@@ -53,6 +53,12 @@
 
 .rbc-day-bg {
     border-left: 1px solid #f0f0f0;
+    transition: background-color 0.2s;
+}
+
+.rbc-day-bg:hover {
+    background-color: rgba(13, 110, 253, 0.05);
+    cursor: pointer;
 }
 
 .rbc-off-range-bg {
@@ -102,4 +108,27 @@
 
 [data-bs-theme="dark"] .rbc-date-cell {
     color: #dee2e6;
+}
+
+/* Inline Delete Styles */
+.calendar-event-stripe {
+    transition: all 0.2s ease;
+}
+
+.calendar-stripe-delete {
+    background: none !important;
+    border: none !important;
+    padding: 0 !important;
+    line-height: 1 !important;
+    transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.calendar-stripe-delete:hover {
+    transform: scale(1.2);
+    opacity: 1 !important;
+    text-shadow: 0 0 5px rgba(255,255,255,0.5);
+}
+
+.hover-opacity-100:hover {
+    opacity: 1 !important;
 }
