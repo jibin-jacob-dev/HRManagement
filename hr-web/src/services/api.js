@@ -444,5 +444,52 @@ export const notificationService = {
     }
 };
 
+export const timesheetService = {
+    getWeekInfo: async (startDate) => {
+        const response = await api.get(`/timesheets/week-info?startDate=${startDate}`);
+        return response.data;
+    },
+    getMyTimesheets: async () => {
+        const response = await api.get('/timesheets/my');
+        return response.data;
+    },
+    getTimesheet: async (id) => {
+        const response = await api.get(`/timesheets/${id}`);
+        return response.data;
+    },
+    saveTimesheet: async (timesheet) => {
+        const response = await api.post('/timesheets/save', timesheet);
+        return response.data;
+    },
+    submitTimesheet: async (id) => {
+        const response = await api.post(`/timesheets/${id}/submit`);
+        return response.data;
+    },
+    getPendingTimesheets: async () => {
+        const response = await api.get('/timesheets/pending');
+        return response.data;
+    },
+    getTeamHistory: async (filters = {}) => {
+        const params = new URLSearchParams();
+        if (filters.status) params.append('status', filters.status);
+        if (filters.employeeName) params.append('employeeName', filters.employeeName);
+        if (filters.startDate) params.append('startDate', filters.startDate);
+
+        const queryString = params.toString();
+        const url = `/timesheets/team-history${queryString ? `?${queryString}` : ''}`;
+        
+        const response = await api.get(url);
+        return response.data;
+    },
+    approveTimesheet: async (id, comment) => {
+        const response = await api.post(`/timesheets/${id}/approve`, comment);
+        return response.data;
+    },
+    rejectTimesheet: async (id, comment) => {
+        const response = await api.post(`/timesheets/${id}/reject`, comment);
+        return response.data;
+    }
+};
+
 export { API_URL };
 export default api;

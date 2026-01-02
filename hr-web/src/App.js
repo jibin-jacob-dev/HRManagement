@@ -24,6 +24,8 @@ import LeaveApprovals from './pages/LeaveApprovals';
 import HolidayCalendar from './pages/HolidayCalendar';
 import LeaveTypes from './pages/LeaveTypes';
 import LeaveBalance from './pages/LeaveBalance';
+import Timesheets from './pages/Timesheets';
+import TimesheetApprovals from './pages/TimesheetApprovals';
 
 // Simple component to protect routes
 const ProtectedRoute = ({ children }) => {
@@ -64,6 +66,8 @@ function App() {
                                             <Route path="/holiday-calendar" element={<HolidayCalendar />} />
                                             <Route path="/leave-types" element={<LeaveTypes />} />
                                             <Route path="/leave-balance" element={<LeaveBalance />} />
+                                            <Route path="/timesheets" element={<Timesheets />} />
+                                            <Route path="/timesheet-approvals" element={<TimesheetApprovals />} />
                                             <Route path="/profile" element={<Profile />} />
                                             <Route path="/profile/:userId" element={<Profile />} />
                                             <Route path="/" element={<Navigate to="/dashboard" />} />

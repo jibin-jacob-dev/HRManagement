@@ -27,6 +27,8 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
     public DbSet<LeaveBalance> LeaveBalances { get; set; }
     public DbSet<PublicHoliday> PublicHolidays { get; set; }
     public DbSet<Notification> Notifications { get; set; }
+    public DbSet<Timesheet> Timesheets { get; set; }
+    public DbSet<TimesheetEntry> TimesheetEntries { get; set; }
     
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -138,6 +140,18 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
             .HasOne(n => n.User)
             .WithMany()
             .HasForeignKey(n => n.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Entity<Timesheet>()
+            .HasOne(t => t.Employee)
+            .WithMany()
+            .HasForeignKey(t => t.EmployeeId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Entity<TimesheetEntry>()
+            .HasOne(te => te.Timesheet)
+            .WithMany(t => t.Entries)
+            .HasForeignKey(te => te.TimesheetId)
             .OnDelete(DeleteBehavior.Cascade);
     }
 }

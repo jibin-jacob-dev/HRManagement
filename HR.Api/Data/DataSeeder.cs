@@ -113,7 +113,9 @@ public static class DataSeeder
                 new Menu { Label = "Holiday Calendar", Route = "/holiday-calendar", Icon = "fa-calendar-alt", OrderIndex = 10 },
                 new Menu { Label = "Leave Types", Route = "/leave-types", Icon = "fa-list-ul", OrderIndex = 11 },
                 new Menu { Label = "Leave Balance", Route = "/leave-balance", Icon = "fa-chart-pie", OrderIndex = 12 },
-                new Menu { Label = "Menu Management", Route = "/menu-management", Icon = "fa-bars", OrderIndex = 13 }
+                new Menu { Label = "My Timesheets", Route = "/timesheets", Icon = "fa-clock", OrderIndex = 13 },
+                new Menu { Label = "Timesheet Approvals", Route = "/timesheet-approvals", Icon = "fa-calendar-check", OrderIndex = 14 },
+                new Menu { Label = "Menu Management", Route = "/menu-management", Icon = "fa-bars", OrderIndex = 15 }
             };
 
             await dbContext.Menus.AddRangeAsync(menus);
