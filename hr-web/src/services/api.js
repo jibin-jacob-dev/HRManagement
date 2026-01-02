@@ -308,12 +308,24 @@ export const leaveService = {
         const response = await api.get(`/leave${params}`);
         return response.data;
     },
+    getMyLeaves: async () => {
+        const response = await api.get('/leave/my-leaves');
+        return response.data;
+    },
+    getTeamLeaves: async () => {
+        const response = await api.get('/leave/team-requests');
+        return response.data;
+    },
+    calculateDays: async (startDate, endDate) => {
+        const response = await api.get('/leave/calculate-days', { params: { startDate, endDate } });
+        return response.data;
+    },
     getLeave: async (id) => {
         const response = await api.get(`/leave/${id}`);
         return response.data;
     },
-    createLeave: async (leave) => {
-        const response = await api.post('/leave', leave);
+    applyLeave: async (leave) => {
+        const response = await api.post('/leave/apply', leave);
         return response.data;
     },
     updateLeave: async (id, leave) => {

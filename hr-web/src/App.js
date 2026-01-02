@@ -18,7 +18,8 @@ import Layout from './components/layout/Layout';
 import Profile from './pages/Profile';
 import EmployeeList from './pages/EmployeeList';
 import AttendanceManagement from './pages/AttendanceManagement';
-import LeaveManagement from './pages/LeaveManagement';
+import LeaveRequests from './pages/LeaveRequests';
+import LeaveApprovals from './pages/LeaveApprovals';
 import HolidayCalendar from './pages/HolidayCalendar';
 import LeaveTypes from './pages/LeaveTypes';
 import LeaveBalance from './pages/LeaveBalance';
@@ -56,7 +57,8 @@ function App() {
                                             <Route path="/employee-management" element={<EmployeeList />} />
                                             <Route path="/employees" element={<EmployeeList />} />
                                             <Route path="/attendance" element={<AttendanceManagement />} />
-                                            <Route path="/leave-management" element={<LeaveManagement />} />
+                                            <Route path="/leave-requests" element={<LeaveRequests />} />
+                                            <Route path="/leave-approvals" element={<LeaveApprovals />} />
                                             <Route path="/holiday-calendar" element={<HolidayCalendar />} />
                                             <Route path="/leave-types" element={<LeaveTypes />} />
                                             <Route path="/leave-balance" element={<LeaveBalance />} />
