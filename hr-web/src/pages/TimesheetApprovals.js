@@ -3,9 +3,13 @@ import { Container, Button, Badge, Card, Modal, Form, Row, Col, Collapse } from 
 import { timesheetService } from '../services/api';
 import alertService from '../services/alertService';
 import moment from 'moment';
+import Select from 'react-select';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
 
 const TimesheetApprovals = () => {
     const [pendingTimesheets, setPendingTimesheets] = useState([]);
+    const [historyTimesheets, setHistoryTimesheets] = useState([]);
     const [loading, setLoading] = useState(true);
     const [selectedTimesheet, setSelectedTimesheet] = useState(null);
     const [showModal, setShowModal] = useState(false);
@@ -22,29 +26,41 @@ const TimesheetApprovals = () => {
     });
 
     useEffect(() => {
-        fetchData();
-    }, [activeTab, filters.startDate, filters.status]);
+        const timer = setTimeout(() => {
+            fetchData();
+        }, 500);
+        return () => clearTimeout(timer);
+    }, [activeTab, filters.startDate, filters.status, filters.employeeName]);
 
     const fetchData = async () => {
         try {
             setLoading(true);
-            let data;
             if (activeTab === 'pending') {
-                data = await timesheetService.getPendingTimesheets();
+                let data = await timesheetService.getPendingTimesheets();
                 if (filters.employeeName) {
                     data = data.filter(t => 
                         `${t.employee?.firstName} ${t.employee?.lastName}`
                         .toLowerCase().includes(filters.employeeName.toLowerCase())
                     );
                 }
+                setPendingTimesheets(data);
             } else {
-                data = await timesheetService.getTeamHistory({
+                // When in history, we still might want to refresh the pending count 
+                // but for simplicity and performance, we'll just fetch history here.
+                // The pending count was set the last time the user was on the Pending tab.
+                const data = await timesheetService.getTeamHistory({
                     status: filters.status,
                     employeeName: filters.employeeName,
                     startDate: filters.startDate
                 });
+                setHistoryTimesheets(data);
+                
+                // Optional: proactively fetch pending count if it's 0 to ensure badge is accurate
+                if (pendingTimesheets.length === 0) {
+                    const pending = await timesheetService.getPendingTimesheets();
+                    setPendingTimesheets(pending);
+                }
             }
-            setPendingTimesheets(data);
         } catch (error) {
             console.error('Error fetching timesheets:', error);
             alertService.showToast('Failed to fetch timesheets', 'error');
@@ -88,6 +104,93 @@ const TimesheetApprovals = () => {
             case 'Rejected': return { color: 'danger', icon: 'fa-times-circle' };
             case 'Submitted': return { color: 'warning', icon: 'fa-clock' };
             default: return { color: 'primary', icon: 'fa-info-circle' };
+        }
+    };
+
+    const statusOptions = [
+        { value: '', label: 'All Logs' },
+        { value: 'Approved', label: 'Approved' },
+        { value: 'Rejected', label: 'Rejected' },
+    ];
+
+    const isDarkMode = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+
+    const customSelectStyles = {
+        control: (provided, state) => ({
+            ...provided,
+            backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.04)' : '#f8f9fa',
+            border: 'none',
+            borderRadius: '0.5rem',
+            padding: '2px 0',
+            boxShadow: 'none',
+            cursor: 'pointer',
+            minHeight: '42px'
+        }),
+        menu: (provided) => ({
+            ...provided,
+            backgroundColor: isDarkMode ? '#2b3035' : '#fff',
+            borderRadius: '0.5rem',
+            border: isDarkMode ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid rgba(0, 0, 0, 0.05)',
+            boxShadow: '0 4px 15px rgba(0, 0, 0, 0.1)',
+            zIndex: 1000
+        }),
+        option: (provided, state) => ({
+            ...provided,
+            backgroundColor: state.isSelected 
+                ? 'var(--bs-primary)' 
+                : state.isFocused 
+                    ? (isDarkMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(13, 110, 253, 0.05)')
+                    : 'transparent',
+            color: state.isSelected 
+                ? '#fff' 
+                : isDarkMode ? '#dee2e6' : '#212529',
+            cursor: 'pointer',
+            padding: '10px 15px',
+            fontSize: '0.875rem',
+            fontWeight: '500',
+            active: {
+                backgroundColor: 'var(--bs-primary)'
+            }
+        }),
+        singleValue: (provided) => ({
+            ...provided,
+            color: isDarkMode ? '#dee2e6' : '#212529',
+            fontSize: '0.95rem',
+            fontWeight: '500'
+        }),
+        placeholder: (provided) => ({
+            ...provided,
+            color: isDarkMode ? 'rgba(222, 226, 230, 0.5)' : 'rgba(33, 37, 41, 0.5)',
+            fontSize: '0.95rem'
+        }),
+        indicatorSeparator: () => ({ display: 'none' }),
+        dropdownIndicator: (provided) => ({
+            ...provided,
+            color: isDarkMode ? 'rgba(222, 226, 230, 0.4)' : 'rgba(33, 37, 41, 0.4)',
+            '&:hover': {
+                color: 'var(--bs-primary)'
+            }
+        })
+    };
+
+    const displayData = activeTab === 'pending' ? pendingTimesheets : historyTimesheets;
+
+    // Helper to get Monday of the selected week
+    const getWeekStart = (date) => {
+        if (!date) return null;
+        const d = new Date(date);
+        const day = d.getDay();
+        const diff = d.getDate() - day + (day === 0 ? -6 : 1); // adjust when day is Sunday
+        return new Date(d.setDate(diff));
+    };
+
+    const handleWeekChange = (date) => {
+        if (date) {
+            const weekStart = getWeekStart(date);
+            const formattedDate = moment(weekStart).format('YYYY-MM-DD');
+            setFilters({...filters, startDate: formattedDate});
+        } else {
+            setFilters({...filters, startDate: ''});
         }
     };
 
@@ -136,36 +239,42 @@ const TimesheetApprovals = () => {
                     {activeTab === 'history' && (
                         <Col md={3}>
                             <Form.Label className="small fw-bold text-muted text-uppercase mb-1 opacity-75">Status</Form.Label>
-                            <Form.Select 
-                                className="bg-light border-0 py-2 shadow-none"
-                                value={filters.status}
-                                onChange={(e) => setFilters({...filters, status: e.target.value})}
-                            >
-                                <option value="">All Logs</option>
-                                <option value="Approved">Approved</option>
-                                <option value="Rejected">Rejected</option>
-                            </Form.Select>
+                            <Select 
+                                options={statusOptions}
+                                value={statusOptions.find(opt => opt.value === filters.status)}
+                                onChange={(opt) => setFilters({...filters, status: opt.value})}
+                                styles={customSelectStyles}
+                                isSearchable={false}
+                                placeholder="Filter status..."
+                            />
                         </Col>
                     )}
 
                     <Col md={activeTab === 'history' ? 3 : 5}>
                         <Form.Label className="small fw-bold text-muted text-uppercase mb-1 opacity-75">Week of</Form.Label>
-                        <Form.Control 
-                            type="date"
-                            className="bg-light border-0 py-2 shadow-none"
-                            value={filters.startDate}
-                            onChange={(e) => setFilters({...filters, startDate: e.target.value})}
+                        <DatePicker
+                            selected={filters.startDate ? new Date(filters.startDate) : null}
+                            onChange={handleWeekChange}
+                            showWeekNumbers
+                            showWeekPicker
+                            dateFormat="'Week' w, yyyy"
+                            placeholderText="Select a week..."
+                            className="form-control bg-light border-0 py-2 shadow-none"
+                            calendarClassName="custom-week-picker"
                         />
                     </Col>
 
-                    <Col md={activeTab === 'history' ? 3 : 2} className="d-flex gap-2">
-                        <Button variant="primary" className="flex-grow-1 py-2 px-4 shadow-sm fw-bold" onClick={handleSearch}>Search</Button>
-                        <Button variant="light" className="border-0 px-3 bg-light hover-bg-primary-soft" onClick={() => {
-                            setFilters({employeeName: '', status: '', startDate: ''});
-                            fetchData();
-                        }}>
-                            <i className="fas fa-undo opacity-50"></i>
-                        </Button>
+                    <Col md={activeTab === 'history' ? 3 : 2}>
+                        <Form.Label className="small fw-bold text-muted text-uppercase mb-1 opacity-75" style={{visibility: 'hidden'}}>Actions</Form.Label>
+                        <div className="d-flex justify-content-end">
+                            <Button variant="light" className="border-0 px-3 py-2 bg-light hover-bg-primary-soft rounded-3 w-100" onClick={() => {
+                                setFilters({employeeName: '', status: '', startDate: ''});
+                                fetchData();
+                            }}>
+                                <i className="fas fa-undo opacity-50 me-2"></i>
+                                <span className="small fw-bold text-muted text-uppercase tracking-wider">Reset</span>
+                            </Button>
+                        </div>
                     </Col>
                 </Form>
             </Card>
@@ -174,14 +283,14 @@ const TimesheetApprovals = () => {
                 <div className="text-center py-5">
                     <div className="spinner-border text-primary" role="status"></div>
                 </div>
-            ) : pendingTimesheets.length === 0 ? (
+            ) : displayData.length === 0 ? (
                 <div className="text-center py-5">
                     <i className="fas fa-folder-open text-muted fa-3x mb-3 opacity-25"></i>
                     <h5 className="text-muted">No records found</h5>
                 </div>
             ) : (
                 <Row className="g-4">
-                    {pendingTimesheets.map(t => (
+                    {displayData.map(t => (
                         <Col lg={4} md={6} key={t.timesheetId}>
                             <Card className={`approval-card ${expandedId === t.timesheetId ? 'expanded' : ''}`}>
                                 <Card.Body className="p-4">
