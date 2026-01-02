@@ -6,6 +6,9 @@ import { attendanceService, userService } from '../services/api';
 import { useGridSettings } from '../hooks/useGridSettings';
 import GridContainer from '../components/common/GridContainer';
 import alertService from '../services/alertService';
+import moment from 'moment';
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 import { usePermission } from '../hooks/usePermission';
 
 // Register AG Grid Modules
@@ -24,7 +27,7 @@ const AttendanceManagement = () => {
     
     const [formData, setFormData] = useState({
         employeeId: '',
-        date: new Date().toISOString().split('T')[0],
+        date: new Date(),
         checkInTime: '',
         checkOutTime: '',
         status: 'Present',
@@ -64,7 +67,7 @@ const AttendanceManagement = () => {
         setSelectedAttendance(null);
         setFormData({
             employeeId: '',
-            date: new Date().toISOString().split('T')[0],
+            date: new Date(),
             checkInTime: '',
             checkOutTime: '',
             status: 'Present',
@@ -78,7 +81,7 @@ const AttendanceManagement = () => {
         setSelectedAttendance(attendance);
         setFormData({
             employeeId: attendance.employeeId,
-            date: new Date(attendance.date).toISOString().split('T')[0],
+            date: new Date(attendance.date),
             checkInTime: attendance.checkInTime || '',
             checkOutTime: attendance.checkOutTime || '',
             status: attendance.status,
@@ -92,6 +95,7 @@ const AttendanceManagement = () => {
             const payload = {
                 ...formData,
                 employeeId: parseInt(formData.employeeId),
+                date: moment(formData.date).format('YYYY-MM-DD'),
                 checkInTime: formData.checkInTime || null,
                 checkOutTime: formData.checkOutTime || null
             };
@@ -293,12 +297,22 @@ const AttendanceManagement = () => {
                         </Form.Group>
 
                         <Form.Group className="mb-3">
-                            <Form.Label>Date</Form.Label>
-                            <Form.Control
-                                type="date"
-                                value={formData.date}
-                                onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                            />
+                            <Form.Label className="small fw-bold text-muted text-uppercase">Date *</Form.Label>
+                            <div className="datepicker-wrapper">
+                                <DatePicker
+                                    selected={formData.date}
+                                    onChange={(date) => setFormData({ ...formData, date: date })}
+                                    dateFormat="MMMM d, yyyy"
+                                    className="form-control border-2"
+                                    placeholderText="Select date"
+                                    showMonthDropdown
+                                    showYearDropdown
+                                    dropdownMode="select"
+                                    required
+                                    portalId="root"
+                                />
+                                <i className="fas fa-calendar-alt"></i>
+                            </div>
                         </Form.Group>
 
                         <div className="row">

@@ -8,6 +8,8 @@ import { useGridSettings } from '../hooks/useGridSettings';
 import GridContainer from '../components/common/GridContainer';
 import alertService from '../services/alertService';
 import { usePermission } from '../hooks/usePermission';
+import Select from 'react-select';
+import { useTheme } from '../context/ThemeContext';
 
 // Custom Styles
 import './MenuManagement.css';
@@ -17,6 +19,7 @@ ModuleRegistry.registerModules([AllCommunityModule]);
 
 const MenuManagement = () => {
     const { refreshMenus } = useMenu();
+    const { isDarkMode } = useTheme();
     const { canEdit } = usePermission('/menu-management');
     const { gridTheme, defaultColDef, suppressCellFocus } = useGridSettings();
     const [menus, setMenus] = useState([]);
@@ -31,6 +34,55 @@ const MenuManagement = () => {
         orderIndex: 0,
         parentId: null
     });
+
+    // Custom Styles for React Select
+    const customSelectStyles = {
+        control: (provided, state) => ({
+            ...provided,
+            backgroundColor: isDarkMode ? '#2b3035' : '#fff',
+            borderColor: state.isFocused ? 'var(--bs-primary)' : (isDarkMode ? '#495057' : '#dee2e6'),
+            color: isDarkMode ? '#fff' : '#000',
+            borderRadius: '6px',
+            minHeight: '38px',
+            boxShadow: state.isFocused ? '0 0 0 0.25rem rgba(13, 110, 253, 0.25)' : 'none',
+            '&:hover': {
+                borderColor: state.isFocused ? 'var(--bs-primary)' : (isDarkMode ? '#6c757d' : '#bdc3c7')
+            }
+        }),
+        menu: (provided) => ({
+            ...provided,
+            backgroundColor: isDarkMode ? '#2b3035' : '#fff',
+            border: isDarkMode ? '1px solid #495057' : '1px solid #dee2e6',
+            zIndex: 1050,
+            borderRadius: '6px',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.3)'
+        }),
+        option: (provided, state) => ({
+            ...provided,
+            backgroundColor: state.isSelected 
+                ? 'var(--bs-primary)' 
+                : (state.isFocused ? (isDarkMode ? '#343a40' : '#f8f9fa') : 'transparent'),
+            color: state.isSelected ? '#fff' : (isDarkMode ? '#dee2e6' : '#333'),
+            cursor: 'pointer',
+            padding: '8px 12px',
+            '&:active': {
+                backgroundColor: 'var(--bs-primary)'
+            }
+        }),
+        singleValue: (provided) => ({
+            ...provided,
+            color: isDarkMode ? '#fff' : '#333',
+        }),
+        input: (provided) => ({
+            ...provided,
+            color: isDarkMode ? '#fff' : '#333',
+        }),
+        placeholder: (provided) => ({
+            ...provided,
+            color: isDarkMode ? '#adb5bd' : '#6c757d',
+        }),
+        menuPortal: (base) => ({ ...base, zIndex: 9999 })
+    };
 
     useEffect(() => {
         fetchMenus();
@@ -293,17 +345,24 @@ const MenuManagement = () => {
                                 <Col md={6}>
                                     <Form.Group className="mb-3">
                                         <Form.Label>Parent Menu</Form.Label>
-                                        <Form.Select
-                                            value={formData.parentId || ''}
-                                            onChange={e => setFormData({ ...formData, parentId: e.target.value ? parseInt(e.target.value) : null })}
-                                        >
-                                            <option value="">None (Top Level)</option>
-                                            {menus
-                                                .filter(m => m.id !== editingMenu?.id) // Prevent self-parenting
-                                                .map(m => (
-                                                <option key={m.id} value={m.id}>{m.label}</option>
-                                            ))}
-                                        </Form.Select>
+                                        <Select
+                                            options={[
+                                                { value: '', label: 'None (Top Level)' },
+                                                ...menus
+                                                    .filter(m => m.id !== editingMenu?.id)
+                                                    .map(m => ({ value: m.id, label: m.label }))
+                                            ]}
+                                            value={
+                                                formData.parentId 
+                                                ? { value: formData.parentId, label: menus.find(m => m.id === formData.parentId)?.label || '' }
+                                                : { value: '', label: 'None (Top Level)' }
+                                            }
+                                            onChange={option => setFormData({ ...formData, parentId: option.value || null })}
+                                            styles={customSelectStyles}
+                                            placeholder="Select Parent..."
+                                            isSearchable={true}
+                                            menuPortalTarget={document.body}
+                                        />
                                     </Form.Group>
                                 </Col>
                             </Row>

@@ -23,6 +23,9 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
     public DbSet<EmployeeEducation> EmployeeEducations { get; set; }
     public DbSet<EmployeeCertification> EmployeeCertifications { get; set; }
     public DbSet<Level> Levels { get; set; }
+    public DbSet<LeaveType> LeaveTypes { get; set; }
+    public DbSet<LeaveBalance> LeaveBalances { get; set; }
+    public DbSet<PublicHoliday> PublicHolidays { get; set; }
     
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -116,5 +119,18 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
             .WithMany(e => e.Certifications)
             .HasForeignKey(ec => ec.EmployeeId)
             .OnDelete(DeleteBehavior.Cascade);
+        
+        // Leave Balance Configuration
+        builder.Entity<LeaveBalance>()
+            .HasOne(lb => lb.Employee)
+            .WithMany()
+            .HasForeignKey(lb => lb.EmployeeId)
+            .OnDelete(DeleteBehavior.Cascade);
+        
+        builder.Entity<LeaveBalance>()
+            .HasOne(lb => lb.LeaveType)
+            .WithMany()
+            .HasForeignKey(lb => lb.LeaveTypeId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }

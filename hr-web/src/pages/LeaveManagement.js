@@ -6,6 +6,9 @@ import { leaveService, userService } from '../services/api';
 import { useGridSettings } from '../hooks/useGridSettings';
 import GridContainer from '../components/common/GridContainer';
 import alertService from '../services/alertService';
+import moment from 'moment';
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 import { usePermission } from '../hooks/usePermission';
 
 // Register AG Grid Modules
@@ -28,8 +31,8 @@ const LeaveManagement = () => {
     const [formData, setFormData] = useState({
         employeeId: '',
         leaveType: 'Sick',
-        startDate: new Date().toISOString().split('T')[0],
-        endDate: new Date().toISOString().split('T')[0],
+        startDate: new Date(),
+        endDate: new Date(),
         reason: ''
     });
 
@@ -69,8 +72,8 @@ const LeaveManagement = () => {
         setFormData({
             employeeId: '',
             leaveType: 'Sick',
-            startDate: new Date().toISOString().split('T')[0],
-            endDate: new Date().toISOString().split('T')[0],
+            startDate: new Date(),
+            endDate: new Date(),
             reason: ''
         });
         setShowModal(true);
@@ -82,8 +85,8 @@ const LeaveManagement = () => {
         setFormData({
             employeeId: leave.employeeId,
             leaveType: leave.leaveType,
-            startDate: new Date(leave.startDate).toISOString().split('T')[0],
-            endDate: new Date(leave.endDate).toISOString().split('T')[0],
+            startDate: new Date(leave.startDate),
+            endDate: new Date(leave.endDate),
             reason: leave.reason || ''
         });
         setShowModal(true);
@@ -93,7 +96,9 @@ const LeaveManagement = () => {
         try {
             const payload = {
                 ...formData,
-                employeeId: parseInt(formData.employeeId)
+                employeeId: parseInt(formData.employeeId),
+                startDate: moment(formData.startDate).format('YYYY-MM-DD'),
+                endDate: moment(formData.endDate).format('YYYY-MM-DD')
             };
 
             if (modalMode === 'add') {
@@ -367,20 +372,41 @@ const LeaveManagement = () => {
 
                         <div className="row">
                             <div className="col-md-6 mb-3">
-                                <Form.Label>Start Date</Form.Label>
-                                <Form.Control
-                                    type="date"
-                                    value={formData.startDate}
-                                    onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
-                                />
+                                <Form.Label className="small fw-bold text-muted text-uppercase">Start Date *</Form.Label>
+                                <div className="datepicker-wrapper">
+                                    <DatePicker
+                                        selected={formData.startDate}
+                                        onChange={(date) => setFormData({ ...formData, startDate: date })}
+                                        dateFormat="MMMM d, yyyy"
+                                        className="form-control border-2"
+                                        placeholderText="Start date"
+                                        showMonthDropdown
+                                        showYearDropdown
+                                        dropdownMode="select"
+                                        required
+                                        portalId="root"
+                                    />
+                                    <i className="fas fa-calendar-alt"></i>
+                                </div>
                             </div>
                             <div className="col-md-6 mb-3">
-                                <Form.Label>End Date</Form.Label>
-                                <Form.Control
-                                    type="date"
-                                    value={formData.endDate}
-                                    onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
-                                />
+                                <Form.Label className="small fw-bold text-muted text-uppercase">End Date *</Form.Label>
+                                <div className="datepicker-wrapper">
+                                    <DatePicker
+                                        selected={formData.endDate}
+                                        onChange={(date) => setFormData({ ...formData, endDate: date })}
+                                        dateFormat="MMMM d, yyyy"
+                                        className="form-control border-2"
+                                        placeholderText="End date"
+                                        showMonthDropdown
+                                        showYearDropdown
+                                        dropdownMode="select"
+                                        required
+                                        minDate={formData.startDate}
+                                        portalId="root"
+                                    />
+                                    <i className="fas fa-calendar-alt"></i>
+                                </div>
                             </div>
                         </div>
 

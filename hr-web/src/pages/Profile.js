@@ -534,7 +534,8 @@ const Profile = () => {
             ...provided,
             color: isDarkMode ? '#adb5bd' : '#6c757d',
             margin: 0
-        })
+        }),
+        menuPortal: (base) => ({ ...base, zIndex: 9999 })
     };
 
     if (loading) {
@@ -784,15 +785,12 @@ const Profile = () => {
                                                 <Col md={4}>
                                                     <Form.Group>
                                                         <Form.Label className="text-muted small fw-bold">Date of Birth</Form.Label>
-                                                        <div className="datepicker-wrapper position-relative">
+                                                        <div className="datepicker-wrapper">
                                                             <DatePicker
                                                                 selected={values.dateOfBirth ? new Date(values.dateOfBirth) : null}
-                                                                onChange={(date) => {
-                                                                    const dateStr = date ? date.toISOString().split('T')[0] : '';
-                                                                    setFieldValue('dateOfBirth', dateStr);
-                                                                }}
+                                                                onChange={(date) => setFieldValue('dateOfBirth', date ? date.toISOString().split('T')[0] : '')}
                                                                 dateFormat="MMMM d, yyyy"
-                                                                className="form-control"
+                                                                className="form-control border-2"
                                                                 placeholderText="Select Date"
                                                                 showMonthDropdown
                                                                 showYearDropdown
@@ -800,8 +798,9 @@ const Profile = () => {
                                                                 scrollableYearDropdown={false}
                                                                 readOnly={isReadOnly}
                                                                 disabled={isReadOnly}
+                                                                portalId="root"
                                                             />
-                                                            <i className="fas fa-calendar-alt position-absolute end-0 top-50 translate-middle-y me-3 pointer-events-none opacity-50 text-primary"></i>
+                                                            <i className="fas fa-calendar-alt"></i>
                                                         </div>
                                                     </Form.Group>
                                                 </Col>
@@ -922,6 +921,7 @@ const Profile = () => {
                                                             isDisabled={isReadOnly || !isAdmin}
                                                             placeholder="Search and select position..."
                                                             isClearable
+                                                            menuPortalTarget={document.body}
                                                         />
                                                     </Form.Group>
                                                 </Col>
@@ -937,6 +937,7 @@ const Profile = () => {
                                                             isDisabled={isReadOnly || !isAdmin}
                                                             placeholder="Select Department"
                                                             isClearable
+                                                            menuPortalTarget={document.body}
                                                         />
                                                     </Form.Group>
                                                 </Col>
@@ -951,6 +952,7 @@ const Profile = () => {
                                                             isDisabled={isReadOnly || !isAdmin}
                                                             placeholder="Select Level"
                                                             isClearable
+                                                            menuPortalTarget={document.body}
                                                         />
                                                     </Form.Group>
                                                 </Col>
@@ -991,7 +993,7 @@ const Profile = () => {
                                                 <Col md={6}>
                                                     <Form.Group>
                                                         <Form.Label className="text-muted small fw-bold">Join Date (Hire Date)</Form.Label>
-                                                        <div className="datepicker-wrapper position-relative">
+                                                        <div className="datepicker-wrapper">
                                                             <DatePicker
                                                                 selected={values.hireDate ? new Date(values.hireDate) : null}
                                                                 onChange={(date) => {
@@ -999,7 +1001,7 @@ const Profile = () => {
                                                                     setFieldValue('hireDate', dateStr);
                                                                 }}
                                                                 dateFormat="MMMM d, yyyy"
-                                                                className="form-control"
+                                                                className="form-control border-2"
                                                                 placeholderText="Select Date"
                                                                 showMonthDropdown
                                                                 showYearDropdown
@@ -1007,8 +1009,9 @@ const Profile = () => {
                                                                 scrollableYearDropdown={false}
                                                                 readOnly={isReadOnly || !isAdmin}
                                                                 disabled={isReadOnly || !isAdmin}
+                                                                portalId="root"
                                                             />
-                                                            <i className="fas fa-calendar-alt opacity-50 text-secondary"></i>
+                                                            <i className="fas fa-calendar-alt"></i>
                                                         </div>
                                                     </Form.Group>
                                                 </Col>
@@ -1033,6 +1036,7 @@ const Profile = () => {
                                                             isDisabled={isReadOnly || !isAdmin}
                                                             placeholder="Select Manager"
                                                             isClearable
+                                                            menuPortalTarget={document.body}
                                                         />
                                                     </Form.Group>
                                                 </Col>
@@ -1310,11 +1314,15 @@ const Profile = () => {
                                                 <DatePicker
                                                     selected={values.startDate}
                                                     onChange={(date) => setFieldValue('startDate', date)}
-                                                    className="form-control"
+                                                    className="form-control border-2"
                                                     dateFormat="MM/yyyy"
                                                     showMonthYearPicker
+                                                    showMonthDropdown
+                                                    showYearDropdown
+                                                    dropdownMode="select"
+                                                    portalId="root"
                                                 />
-                                                <i className="far fa-calendar-alt text-muted"></i>
+                                                <i className="fas fa-calendar-alt"></i>
                                             </div>
                                         </Form.Group>
                                     </Col>
@@ -1325,12 +1333,16 @@ const Profile = () => {
                                                 <DatePicker
                                                     selected={values.endDate}
                                                     onChange={(date) => setFieldValue('endDate', date)}
-                                                    className="form-control"
+                                                    className="form-control border-2"
                                                     dateFormat="MM/yyyy"
                                                     showMonthYearPicker
+                                                    showMonthDropdown
+                                                    showYearDropdown
+                                                    dropdownMode="select"
                                                     disabled={values.isCurrent}
+                                                    portalId="root"
                                                 />
-                                                <i className="far fa-calendar-alt text-muted"></i>
+                                                <i className="fas fa-calendar-alt"></i>
                                             </div>
                                             <Form.Check 
                                                 type="checkbox"
@@ -1437,11 +1449,14 @@ const Profile = () => {
                                                 <DatePicker
                                                     selected={values.startDate}
                                                     onChange={(date) => setFieldValue('startDate', date)}
-                                                    className="form-control"
+                                                    className="form-control border-2"
                                                     dateFormat="yyyy"
                                                     showYearPicker
+                                                    showYearDropdown
+                                                    dropdownMode="select"
+                                                    portalId="root"
                                                 />
-                                                <i className="far fa-calendar-alt text-muted"></i>
+                                                <i className="fas fa-calendar-alt"></i>
                                             </div>
                                         </Form.Group>
                                     </Col>
@@ -1452,12 +1467,15 @@ const Profile = () => {
                                                 <DatePicker
                                                     selected={values.endDate}
                                                     onChange={(date) => setFieldValue('endDate', date)}
-                                                    className="form-control"
+                                                    className="form-control border-2"
                                                     dateFormat="yyyy"
                                                     showYearPicker
+                                                    showYearDropdown
+                                                    dropdownMode="select"
                                                     placeholderText="Select Year"
+                                                    portalId="root"
                                                 />
-                                                <i className="far fa-calendar-alt text-muted"></i>
+                                                <i className="fas fa-calendar-alt"></i>
                                             </div>
                                         </Form.Group>
                                     </Col>
@@ -1540,10 +1558,14 @@ const Profile = () => {
                                                 <DatePicker
                                                     selected={values.issueDate}
                                                     onChange={(date) => setFieldValue('issueDate', date)}
-                                                    className="form-control"
+                                                    className="form-control border-2"
                                                     dateFormat="MMMM d, yyyy"
+                                                    showMonthDropdown
+                                                    showYearDropdown
+                                                    dropdownMode="select"
+                                                    portalId="root"
                                                 />
-                                                <i className="far fa-calendar-alt text-muted"></i>
+                                                <i className="fas fa-calendar-alt"></i>
                                             </div>
                                         </Form.Group>
                                     </Col>
@@ -1554,11 +1576,15 @@ const Profile = () => {
                                                 <DatePicker
                                                     selected={values.expiryDate}
                                                     onChange={(date) => setFieldValue('expiryDate', date)}
-                                                    className="form-control"
+                                                    className="form-control border-2"
                                                     dateFormat="MMMM d, yyyy"
+                                                    showMonthDropdown
+                                                    showYearDropdown
+                                                    dropdownMode="select"
                                                     placeholderText="Does not expire"
+                                                    portalId="root"
                                                 />
-                                                <i className="far fa-calendar-alt text-muted"></i>
+                                                <i className="fas fa-calendar-alt"></i>
                                             </div>
                                         </Form.Group>
                                     </Col>

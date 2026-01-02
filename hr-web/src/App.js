@@ -19,6 +19,9 @@ import Profile from './pages/Profile';
 import EmployeeList from './pages/EmployeeList';
 import AttendanceManagement from './pages/AttendanceManagement';
 import LeaveManagement from './pages/LeaveManagement';
+import HolidayCalendar from './pages/HolidayCalendar';
+import LeaveTypes from './pages/LeaveTypes';
+import LeaveBalance from './pages/LeaveBalance';
 
 // Simple component to protect routes
 const ProtectedRoute = ({ children }) => {
@@ -44,12 +47,19 @@ function App() {
                                             <Route path="/user-management" element={<UserManagement />} />
                                             <Route path="/role-management" element={<RoleManagement />} />
                                             <Route path="/menu-management" element={<MenuManagement />} />
+                                            <Route path="/department-management" element={<DepartmentManagement />} />
                                             <Route path="/departments" element={<DepartmentManagement />} />
+                                            <Route path="/position-management" element={<PositionManagement />} />
                                             <Route path="/positions" element={<PositionManagement />} />
+                                            <Route path="/level-management" element={<LevelManagement />} />
                                             <Route path="/levels" element={<LevelManagement />} />
+                                            <Route path="/employee-management" element={<EmployeeList />} />
                                             <Route path="/employees" element={<EmployeeList />} />
                                             <Route path="/attendance" element={<AttendanceManagement />} />
                                             <Route path="/leave-management" element={<LeaveManagement />} />
+                                            <Route path="/holiday-calendar" element={<HolidayCalendar />} />
+                                            <Route path="/leave-types" element={<LeaveTypes />} />
+                                            <Route path="/leave-balance" element={<LeaveBalance />} />
                                             <Route path="/profile" element={<Profile />} />
                                             <Route path="/profile/:userId" element={<Profile />} />
                                             <Route path="/" element={<Navigate to="/dashboard" />} />

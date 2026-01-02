@@ -334,4 +334,83 @@ export const leaveService = {
     }
 };
 
+export const publicHolidayService = {
+    getPublicHolidays: async (year) => {
+        const params = year ? `?year=${year}` : '';
+        const response = await api.get(`/publicholidays${params}`);
+        return response.data;
+    },
+    getPublicHoliday: async (id) => {
+        const response = await api.get(`/publicholidays/${id}`);
+        return response.data;
+    },
+    createPublicHoliday: async (holiday) => {
+        const response = await api.post('/publicholidays', holiday);
+        return response.data;
+    },
+    updatePublicHoliday: async (id, holiday) => {
+        const response = await api.put(`/publicholidays/${id}`, holiday);
+        return response.data;
+    },
+    deletePublicHoliday: async (id) => {
+        const response = await api.delete(`/publicholidays/${id}`);
+        return response.data;
+    }
+};
+
+export const leaveTypeService = {
+    getLeaveTypes: async () => {
+        const response = await api.get('/leavetypes');
+        return response.data;
+    },
+    getLeaveType: async (id) => {
+        const response = await api.get(`/leavetypes/${id}`);
+        return response.data;
+    },
+    createLeaveType: async (leaveType) => {
+        const response = await api.post('/leavetypes', leaveType);
+        return response.data;
+    },
+    updateLeaveType: async (id, leaveType) => {
+        const response = await api.put(`/leavetypes/${id}`, leaveType);
+        return response.data;
+    },
+    deleteLeaveType: async (id) => {
+        const response = await api.delete(`/leavetypes/${id}`);
+        return response.data;
+    }
+};
+
+export const leaveBalanceService = {
+    getLeaveBalances: async (employeeId) => {
+        const params = employeeId ? `?employeeId=${employeeId}` : '';
+        const response = await api.get(`/leavebalance${params}`);
+        return response.data;
+    },
+    getLeaveBalance: async (id) => {
+        const response = await api.get(`/leavebalance/${id}`);
+        return response.data;
+    },
+    getEmployeeLeaveBalance: async (employeeId, year) => {
+        const response = await api.get(`/leavebalance/employee/${employeeId}/year/${year}`);
+        return response.data;
+    },
+    createLeaveBalance: async (leaveBalance) => {
+        const response = await api.post('/leavebalance', leaveBalance);
+        return response.data;
+    },
+    updateLeaveBalance: async (id, leaveBalance) => {
+        const response = await api.put(`/leavebalance/${id}`, leaveBalance);
+        return response.data;
+    },
+    deleteLeaveBalance: async (id) => {
+        const response = await api.delete(`/leavebalance/${id}`);
+        return response.data;
+    },
+    initializeYearBalances: async (year) => {
+        const response = await api.post('/leavebalance/initialize-year', { year });
+        return response.data;
+    }
+};
+
 export default api;

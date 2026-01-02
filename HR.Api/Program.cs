@@ -5,6 +5,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using HR.Core.Data;
 using HR.Core.Models;
+using HR.Api.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -120,44 +121,11 @@ app.UseCors("AllowReactApp");
 app.UseAuthentication();
 app.UseAuthorization();
 
-// Seed roles and admin user
-using (var scope = app.Services.CreateScope())
-{
-    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<ApplicationRole>>();
-    var roles = new[] { "Admin", "HR Manager", "Employee" };
-    
-    foreach (var role in roles)
-    {
-        if (!await roleManager.RoleExistsAsync(role))
-        {
-            await roleManager.CreateAsync(new ApplicationRole { Name = role });
-        }
-    }
-
-    // Seed Admin User
-    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
-    var adminEmail = "drego@gmail.com";
-    var adminUser = await userManager.FindByEmailAsync(adminEmail);
-    if (adminUser == null)
-    {
-        adminUser = new ApplicationUser
-        {
-            UserName = adminEmail,
-            Email = adminEmail,
-            FirstName = "Drego",
-            LastName = "Admin",
-            IsActive = true,
-            EmailConfirmed = true
-        };
-        await userManager.CreateAsync(adminUser, "Admin@1234");
-    }
-
-    // Ensure the user is in Admin role
-    if (!await userManager.IsInRoleAsync(adminUser, "Admin"))
-    {
-        await userManager.AddToRoleAsync(adminUser, "Admin");
-    }
-}
+// Seed initial data
+// using (var scope = app.Services.CreateScope())
+// {
+//     await DataSeeder.SeedAsync(scope.ServiceProvider, builder.Configuration);
+// }
 
 app.MapControllers();
 

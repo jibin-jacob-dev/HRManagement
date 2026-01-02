@@ -184,6 +184,7 @@ public class MenusController : ControllerBase
             
             var mappedChildren = menu.Children?
                 .Where(c => accessibleMenuIds.Contains(c.Id))
+                .OrderBy(c => c.OrderIndex)
                 .Select(c => MapMenuWithPermission(c))
                 .ToList();
 
@@ -201,7 +202,8 @@ public class MenusController : ControllerBase
         }
 
         var visibleMenus = allMenus
-            .Where(m => accessibleMenuIds.Contains(m.Id))
+            .Where(m => m.ParentId == null && accessibleMenuIds.Contains(m.Id))
+            .OrderBy(m => m.OrderIndex)
             .Select(m => MapMenuWithPermission(m))
             .ToList();
 
