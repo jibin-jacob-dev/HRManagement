@@ -1,0 +1,134 @@
+/* Holiday Calendar Styles */
+.rbc-calendar {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+.rbc-header {
+    padding: 12px 8px;
+    font-weight: 600;
+    border-bottom: 2px solid #dee2e6;
+}
+
+.rbc-today {
+    background-color: #e7f3ff;
+}
+
+.rbc-event {
+    padding: 4px 8px;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.rbc-event:hover {
+    cursor: pointer;
+    opacity: 1 !important;
+}
+
+.rbc-toolbar button {
+    color: #495057;
+    border: 1px solid #ced4da;
+    padding: 6px 12px;
+    border-radius: 4px;
+}
+
+.rbc-toolbar button:hover {
+    background-color: #e9ecef;
+}
+
+.rbc-toolbar button.rbc-active {
+    background-color: #0d6efd;
+    color: white;
+    border-color: #0d6efd;
+}
+
+.rbc-toolbar button.rbc-active:hover {
+    background-color: #0b5ed7;
+}
+
+.rbc-month-view {
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.rbc-day-bg {
+    border-left: 1px solid #f0f0f0;
+    transition: background-color 0.2s;
+}
+
+.rbc-day-bg:hover {
+    background-color: rgba(13, 110, 253, 0.05);
+    cursor: pointer;
+}
+
+.rbc-off-range-bg {
+    background-color: #f8f9fa;
+}
+
+/* Dark mode support */
+[data-bs-theme="dark"] .rbc-calendar {
+    color: #dee2e6;
+}
+
+[data-bs-theme="dark"] .rbc-header {
+    border-bottom-color: #495057;
+    background-color: #212529;
+}
+
+[data-bs-theme="dark"] .rbc-today {
+    background-color: #1a3a52;
+}
+
+[data-bs-theme="dark"] .rbc-toolbar button {
+    color: #dee2e6;
+    border-color: #495057;
+    background-color: #343a40;
+}
+
+[data-bs-theme="dark"] .rbc-toolbar button:hover {
+    background-color: #495057;
+}
+
+[data-bs-theme="dark"] .rbc-month-view {
+    border-color: #495057;
+    background-color: #212529;
+}
+
+[data-bs-theme="dark"] .rbc-day-bg {
+    border-left-color: #343a40;
+}
+
+[data-bs-theme="dark"] .rbc-off-range-bg {
+    background-color: #1a1d20;
+}
+
+[data-bs-theme="dark"] .rbc-month-row {
+    border-top-color: #343a40;
+}
+
+[data-bs-theme="dark"] .rbc-date-cell {
+    color: #dee2e6;
+}
+
+/* Inline Delete Styles */
+.calendar-event-stripe {
+    transition: all 0.2s ease;
+}
+
+.calendar-stripe-delete {
+    background: none !important;
+    border: none !important;
+    padding: 0 !important;
+    line-height: 1 !important;
+    transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.calendar-stripe-delete:hover {
+    transform: scale(1.2);
+    opacity: 1 !important;
+    text-shadow: 0 0 5px rgba(255,255,255,0.5);
+}
+
+.hover-opacity-100:hover {
+    opacity: 1 !important;
+}

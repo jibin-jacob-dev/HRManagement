@@ -13,34 +13,43 @@ const Sidebar = ({ isCollapsed, toggleSidebar }) => {
 
     useEffect(() => {
         if (Array.isArray(menus)) {
-            // Build Tree
+            // Helper to sort recursively
+            const sortRecursively = (items) => {
+                if (!items) return items;
+                return [...items].sort((a, b) => (a.orderIndex || 0) - (b.orderIndex || 0)).map(item => ({
+                    ...item,
+                    children: item.children ? sortRecursively(item.children) : []
+                }));
+            };
+
+            // Check if data is already nested (has children from API)
+            const isAlreadyNested = menus.some(m => m.children && m.children.length > 0);
+            
+            if (isAlreadyNested) {
+                setMenuTree(sortRecursively(menus));
+                return;
+            }
+
+            // Fallback for flat list
             const buildTree = (items) => {
                 const rootItems = [];
                 const lookup = {};
                 
-                // Initialize lookup and add children array
                 items.forEach(item => {
-                    lookup[item.id] = { ...item, children: [] };
+                    lookup[item.id] = { ...item, children: item.children ? [...item.children] : [] };
                 });
 
                 items.forEach(item => {
                     if (item.parentId && lookup[item.parentId]) {
-                        lookup[item.parentId].children.push(lookup[item.id]);
-                    } else {
+                        if (!lookup[item.parentId].children.find(c => c.id === item.id)) {
+                            lookup[item.parentId].children.push(lookup[item.id]);
+                        }
+                    } else if (!item.parentId) {
                         rootItems.push(lookup[item.id]);
                     }
                 });
                 
-                // Sort by order index
-                const sortItems = (nodes) => {
-                    nodes.sort((a, b) => (a.orderIndex || 0) - (b.orderIndex || 0));
-                    nodes.forEach(node => {
-                        if (node.children.length > 0) sortItems(node.children);
-                    });
-                };
-
-                sortItems(rootItems);
-                return rootItems;
+                return sortRecursively(rootItems);
             };
 
             setMenuTree(buildTree(menus));

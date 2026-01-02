@@ -4,10 +4,20 @@ import { Navbar, Nav, Container, Button, Form, InputGroup, Dropdown, Badge } fro
 import { authService } from '../../services/api';
 import ThemeToggle from '../common/ThemeToggle';
 import FontSizeControl from '../common/FontSizeControl';
+import { useNotifications } from '../../context/NotificationContext';
+import { formatDistanceToNow } from 'date-fns';
 
 const CustomNavbar = ({ toggleSidebar, isCollapsed }) => {
     const navigate = useNavigate();
     const user = authService.getCurrentUser();
+    const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications();
+    
+    // Timer to refresh relative time labels (e.g., from "just now" to "1 minute ago")
+    const [, setTick] = React.useState(0);
+    React.useEffect(() => {
+        const interval = setInterval(() => setTick(t => t + 1), 30000);
+        return () => clearInterval(interval);
+    }, []);
 
     const handleLogout = () => {
         authService.logout();
@@ -51,19 +61,111 @@ const CustomNavbar = ({ toggleSidebar, isCollapsed }) => {
                 <Nav className="flex-row align-items-center gap-1 gap-md-3 flex-shrink-0 mb-0">
                     <ThemeToggle />
                     
-                    <Button variant="link" className="text-secondary p-0 position-relative d-flex align-items-center justify-content-center text-decoration-none"
-                            style={{ width: '40px', height: '40px' }}>
-                        <i className="fas fa-bell fs-5"></i>
-                        <Badge bg="danger" className="position-absolute rounded-circle d-flex align-items-center justify-content-center" 
-                               style={{ width: '16px', height: '16px', fontSize: '0.6rem', top: '4px', right: '4px' }}>
-                            3
-                        </Badge>
-                    </Button>
+                    <Dropdown align="end" className="notification-dropdown">
+                        <Dropdown.Toggle as="div" className="no-caret" style={{ cursor: 'pointer' }}>
+                            <Button variant="link" className={`notification-bell ${unreadCount > 0 ? 'has-unread' : ''} text-secondary p-0 position-relative d-flex align-items-center justify-content-center text-decoration-none`}
+                                    style={{ width: '40px', height: '40px' }}>
+                                <i className="fas fa-bell fs-5"></i>
+                                {unreadCount > 0 && (
+                                    <Badge bg="danger" className="position-absolute rounded-circle d-flex align-items-center justify-content-center" 
+                                           style={{ width: '18px', height: '18px', fontSize: '0.65rem', top: '2px', right: '2px', border: '2px solid white' }}>
+                                        {unreadCount > 99 ? '99+' : unreadCount}
+                                    </Badge>
+                                )}
+                            </Button>
+                        </Dropdown.Toggle>
 
-                    <Dropdown align="end">
+                        <Dropdown.Menu className="notification-menu shadow-lg border-0 mt-3 p-0">
+                            <div className="notification-header p-3 d-flex align-items-center justify-content-between">
+                                <h6 className="mb-0 fw-bold">Notifications</h6>
+                                {unreadCount > 0 && (
+                                    <Button variant="link" className="mark-all-btn p-0 text-decoration-none small" onClick={markAllAsRead}>
+                                        Mark all as read
+                                    </Button>
+                                )}
+                            </div>
+                            <div className="notification-list" style={{ maxHeight: '420px', overflowY: 'auto' }}>
+                                {notifications.length > 0 ? (
+                                    notifications.map((notification) => (
+                                        <div 
+                                            key={notification.notificationId} 
+                                            className={`notification-item p-3 border-bottom ${!notification.isRead ? 'unread' : ''}`}
+                                            onClick={() => {
+                                                if (!notification.isRead) markAsRead(notification.notificationId);
+                                                if (notification.targetUrl) navigate(notification.targetUrl);
+                                            }}
+                                        >
+                                            <div className="d-flex gap-3">
+                                                <div className={`notification-icon-wrapper rounded-circle d-flex align-items-center justify-content-center flex-shrink-0 type-${notification.type?.toLowerCase()}`}>
+                                                    <i className={`fas ${
+                                                        notification.type === 'LeaveRequest' ? 'fa-paper-plane' : 
+                                                        notification.type === 'LeaveApproval' ? 'fa-check-circle' : 
+                                                        notification.type === 'LeaveRejection' ? 'fa-times-circle' : 'fa-bell'
+                                                    }`}></i>
+                                                </div>
+                                                <div className="notification-content flex-grow-1">
+                                                    <div className="d-flex justify-content-between align-items-start mb-1">
+                                                        <span className="notification-title small fw-bold">
+                                                            {notification.title}
+                                                        </span>
+                                                        <small className="notification-time text-muted">
+                                                            {(() => {
+                                                                try {
+                                                                    let dateStr = notification.createdDate;
+                                                                    if (!dateStr) return 'just now';
+
+                                                                    dateStr = dateStr.toString();
+
+                                                                    let date;
+                                                                    if (!dateStr.includes('Z') && !dateStr.includes('+') && !dateStr.includes('-')) {
+                                                                        date = new Date(dateStr + 'Z');
+                                                                    } else {
+                                                                        date = new Date(dateStr);
+                                                                    }
+
+                                                                    const now = new Date();
+                                                                    const diffInSeconds = Math.floor((now - date) / 1000);
+
+                                                                    // Compensation for +5:30 offset bugs and live notifications
+                                                                    if (diffInSeconds < 60 || (notification.isLive && diffInSeconds < 21600)) {
+                                                                        return 'just now';
+                                                                    }
+
+                                                                    return formatDistanceToNow(date, { addSuffix: true });
+                                                                } catch (e) {
+                                                                    return 'just now';
+                                                                }
+                                                            })()}
+                                                        </small>
+                                                    </div>
+                                                    <p className="notification-message mb-0 text-muted small lh-sm">
+                                                        {notification.message}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))
+                                ) : (
+                                    <div className="p-5 text-center empty-notifications">
+                                        <div className="empty-icon-bg mb-3">
+                                            <i className="fas fa-bell-slash"></i>
+                                        </div>
+                                        <p className="text-muted small mb-0">You're all caught up!</p>
+                                    </div>
+                                )}
+                            </div>
+                            <div className="notification-footer p-2 text-center bg-light-subtle">
+                                <Button variant="link" className="text-decoration-none small p-0 text-primary fw-medium">
+                                    View all activity
+                                </Button>
+                            </div>
+                        </Dropdown.Menu>
+                    </Dropdown>
+
+                    <Dropdown align="end" className="profile-dropdown">
                         <Dropdown.Toggle variant="link" id="profile-dropdown" className="p-0 border-0 shadow-none no-caret d-flex align-items-center ms-1">
                             <div className="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center shadow-sm" 
-                                 style={{ width: '38px', height: '38px', fontWeight: 'bold', fontSize: '0.9rem' }}
+                                 style={{ width: '40px', height: '40px', fontWeight: 'bold', fontSize: '0.95rem' }}
                                  title={`${user?.firstName} ${user?.lastName}`}
                             >
                                 {user?.profilePicture ? (
@@ -79,17 +181,35 @@ const CustomNavbar = ({ toggleSidebar, isCollapsed }) => {
                                 )}
                             </div>
                         </Dropdown.Toggle>
-                    <Dropdown.Menu className="shadow-lg border-0 mt-3 p-2" style={{ minWidth: '320px', borderRadius: '12px' }}>
-                             <div className="p-3 border-bottom mb-2">
-                                <h6 className="mb-0 fw-bold">{user?.firstName} {user?.lastName}</h6>
-                                <small className="text-muted d-block mb-2">{user?.email}</small>
-                                <div className="d-flex flex-wrap gap-1">
+                        <Dropdown.Menu className="profile-menu shadow-lg border-0 mt-3 p-0">
+                            <div className="profile-header p-3 border-bottom bg-light-subtle">
+                                <div className="d-flex align-items-center gap-3">
+                                    <div className="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center shadow-sm flex-shrink-0" 
+                                         style={{ width: '48px', height: '48px', fontWeight: 'bold', fontSize: '1.1rem' }}>
+                                        {user?.profilePicture ? (
+                                            <img 
+                                                src={`http://localhost:5227${user.profilePicture}`} 
+                                                alt="Profile" 
+                                                className="rounded-circle"
+                                                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                                onError={(e) => { e.target.style.display = 'none'; e.target.parentElement.innerText = getInitials(); }}
+                                            />
+                                        ) : (
+                                            getInitials()
+                                        )}
+                                    </div>
+                                    <div className="overflow-hidden">
+                                        <h6 className="mb-0 fw-bold text-truncate">{user?.firstName} {user?.lastName}</h6>
+                                        <p className="text-muted small mb-0 text-truncate" style={{ fontSize: '0.75rem' }}>{user?.email}</p>
+                                    </div>
+                                </div>
+                                <div className="d-flex flex-wrap gap-1 mt-2">
                                     {(user?.roles || []).map((role, index) => (
                                         <Badge 
                                             key={index} 
                                             bg="primary" 
                                             className="fw-normal bg-opacity-10 text-primary border border-primary-subtle"
-                                            style={{ fontSize: '0.65rem' }}
+                                            style={{ fontSize: '0.6rem' }}
                                         >
                                             {role}
                                         </Badge>
@@ -97,26 +217,38 @@ const CustomNavbar = ({ toggleSidebar, isCollapsed }) => {
                                 </div>
                             </div>
                             
-                            <div className="px-3 py-2 border-bottom mb-2">
-                                <div className="small fw-bold text-muted mb-2 text-uppercase" style={{ fontSize: '0.65rem', letterSpacing: '0.05rem' }}>
-                                    Appearance
+                            <div className="p-2">
+                                <div className="px-3 py-2">
+                                    <div className="small fw-bold text-muted mb-2 text-uppercase" style={{ fontSize: '0.6rem', letterSpacing: '0.05rem' }}>
+                                        Account
+                                    </div>
+                                    <Dropdown.Item as={Link} to="/profile" className="rounded-2 py-2 small">
+                                        <i className="fas fa-user-circle me-3 opacity-75 text-primary"></i> My Profile
+                                    </Dropdown.Item>
+                                    <Dropdown.Item as={Link} to="/settings" className="rounded-2 py-2 small">
+                                        <i className="fas fa-cog me-3 opacity-75 text-primary"></i> Account Settings
+                                    </Dropdown.Item>
                                 </div>
-                                <div className="d-flex align-items-center justify-content-between gap-2">
-                                    <span className="small">Font Size</span>
-                                    <FontSizeControl />
+
+                                <div className="px-3 py-2 border-top mt-2 overflow-hidden">
+                                    <div className="small fw-bold text-muted mb-2 text-uppercase" style={{ fontSize: '0.6rem', letterSpacing: '0.05rem' }}>
+                                        Experience & Preferences
+                                    </div>
+                                    <div className="d-flex flex-column gap-2 mt-2">
+                                        <div className="d-flex align-items-center justify-content-between mb-1">
+                                            <span className="small text-muted">Aesthetics</span>
+                                            <span className="small fw-medium text-primary">Font Size Control</span>
+                                        </div>
+                                        <FontSizeControl />
+                                    </div>
+                                </div>
+
+                                <div className="px-3 py-2 border-top mt-2">
+                                    <Dropdown.Item onClick={handleLogout} className="text-danger rounded-2 py-2 small">
+                                        <i className="fas fa-sign-out-alt me-3 opacity-75"></i> Sign Out
+                                    </Dropdown.Item>
                                 </div>
                             </div>
-
-                            <Dropdown.Item as={Link} to="/profile" className="rounded-3 py-2 small">
-                                <i className="fas fa-user-circle me-2 opacity-75"></i> Profile
-                            </Dropdown.Item>
-                            <Dropdown.Item as={Link} to="/settings" className="rounded-3 py-2 small">
-                                <i className="fas fa-cog me-2 opacity-75"></i> Settings
-                            </Dropdown.Item>
-                            <Dropdown.Divider />
-                            <Dropdown.Item onClick={handleLogout} className="text-danger rounded-3 py-2 small">
-                                <i className="fas fa-sign-out-alt me-2 opacity-75"></i> Logout
-                            </Dropdown.Item>
                         </Dropdown.Menu>
                     </Dropdown>
                 </Nav>

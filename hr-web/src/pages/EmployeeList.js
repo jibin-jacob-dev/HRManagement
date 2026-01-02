@@ -30,15 +30,7 @@ const EmployeeList = () => {
             // Simplify data extraction if wrapped
             const userList = Array.isArray(data) ? data : (data.value || []);
             // Filter to only show users with 'Employee' role
-            const employeesOnly = userList.filter(user => 
-                user.roles && (
-                    user.roles.includes('Employee') || 
-                    user.roles.includes('employee') ||
-                    user.roles.includes('Admin') || 
-                    user.roles.includes('admin')
-                )
-            );
-            setEmployees(employeesOnly);
+            setEmployees(userList);
         } catch (error) {
             console.error('Error fetching employees:', error);
             alertService.showToast('Failed to load employee directory', 'error');
@@ -122,12 +114,21 @@ const EmployeeList = () => {
             field: 'employeeId', 
             headerName: 'ID', 
             width: 100,
-            cellClass: 'text-secondary fw-medium'
+            cellClass: 'text-secondary fw-medium',
+            hide: true // Hiding as per user request
         },
-        { field: 'department', headerName: 'Department', flex: 1 },
-        { field: 'position', headerName: 'Position', flex: 1 },
         { 
-            field: 'dateOfJoining', 
+            field: 'departmentName', // Updated to match API
+            headerName: 'Department', 
+            flex: 1 
+        },
+        { 
+            field: 'positionTitle', // Updated to match API
+            headerName: 'Position', 
+            flex: 1 
+        },
+        { 
+            field: 'hireDate', // Updated to match API
             headerName: 'Joined', 
             width: 120,
             valueFormatter: (params) => {

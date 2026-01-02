@@ -1,40 +1,27 @@
 import React from 'react';
-import { Button, ButtonGroup } from 'react-bootstrap';
+import { Form } from 'react-bootstrap';
 import { useTheme } from '../../context/ThemeContext';
 
 const FontSizeControl = () => {
-    const { changeFontSize, fontSize, isDarkMode } = useTheme();
+    const { setFontSize, fontSize } = useTheme();
 
     return (
-        <ButtonGroup className="shadow-sm rounded-pill overflow-hidden" size="sm">
-            <Button 
-                variant={isDarkMode ? "outline-light" : "outline-secondary"}
-                onClick={() => changeFontSize(-5)}
-                title="Decrease Font Size"
-                className="px-3 border-0 bg-transparent-hover"
-                style={{ opacity: 0.8 }}
-            >
-                <i className="fas fa-minus small"></i> A
-            </Button>
-            <Button 
-                variant={isDarkMode ? "outline-light" : "outline-secondary"}
-                onClick={() => changeFontSize(0)}
-                title={`Current: ${fontSize}% (Click to Reset)`}
-                className="px-3 border-0 border-start border-end bg-transparent-hover fw-bold"
-                style={{ fontSize: '0.8rem' }}
-            >
+        <div className="d-flex align-items-center gap-3 w-100 px-1">
+            <span className="text-muted" style={{ fontSize: '0.7rem' }}>A</span>
+            <Form.Range
+                min={80}
+                max={130}
+                step={5}
+                value={fontSize}
+                onChange={(e) => setFontSize(parseInt(e.target.value))}
+                className="font-size-slider flex-grow-1"
+                title={`${fontSize}%`}
+            />
+            <span className="text-muted" style={{ fontSize: '1rem' }}>A</span>
+            <span className="badge bg-light text-dark border ms-1 fw-medium" style={{ fontSize: '0.65rem', minWidth: '40px' }}>
                 {fontSize}%
-            </Button>
-            <Button 
-                variant={isDarkMode ? "outline-light" : "outline-secondary"}
-                onClick={() => changeFontSize(5)}
-                title="Increase Font Size"
-                className="px-3 border-0 bg-transparent-hover"
-                style={{ opacity: 0.8 }}
-            >
-                A <i className="fas fa-plus small"></i>
-            </Button>
-        </ButtonGroup>
+            </span>
+        </div>
     );
 };
 

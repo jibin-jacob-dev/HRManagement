@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace HR.Core.Models;
 
@@ -11,8 +12,7 @@ public class Leave
     public int EmployeeId { get; set; }
     
     [Required]
-    [MaxLength(50)]
-    public string LeaveType { get; set; } = string.Empty; // Sick, Vacation, Personal, etc.
+    public int LeaveTypeId { get; set; }
     
     [Required]
     public DateTime StartDate { get; set; }
@@ -20,6 +20,9 @@ public class Leave
     [Required]
     public DateTime EndDate { get; set; }
     
+    [Column(TypeName = "decimal(18,2)")]
+    public decimal TotalDays { get; set; }
+
     [Required]
     [MaxLength(50)]
     public string Status { get; set; } = "Pending"; // Pending, Approved, Rejected
@@ -36,6 +39,7 @@ public class Leave
     
     public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
     
-    // Navigation property
+    // Navigation properties
     public virtual Employee Employee { get; set; } = null!;
+    public virtual LeaveType LeaveType { get; set; } = null!;
 }

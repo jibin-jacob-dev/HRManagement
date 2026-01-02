@@ -23,6 +23,12 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
     public DbSet<EmployeeEducation> EmployeeEducations { get; set; }
     public DbSet<EmployeeCertification> EmployeeCertifications { get; set; }
     public DbSet<Level> Levels { get; set; }
+    public DbSet<LeaveType> LeaveTypes { get; set; }
+    public DbSet<LeaveBalance> LeaveBalances { get; set; }
+    public DbSet<PublicHoliday> PublicHolidays { get; set; }
+    public DbSet<Notification> Notifications { get; set; }
+    public DbSet<Timesheet> Timesheets { get; set; }
+    public DbSet<TimesheetEntry> TimesheetEntries { get; set; }
     
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -115,6 +121,37 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
             .HasOne(ec => ec.Employee)
             .WithMany(e => e.Certifications)
             .HasForeignKey(ec => ec.EmployeeId)
+            .OnDelete(DeleteBehavior.Cascade);
+        
+        // Leave Balance Configuration
+        builder.Entity<LeaveBalance>()
+            .HasOne(lb => lb.Employee)
+            .WithMany()
+            .HasForeignKey(lb => lb.EmployeeId)
+            .OnDelete(DeleteBehavior.Cascade);
+        
+        builder.Entity<LeaveBalance>()
+            .HasOne(lb => lb.LeaveType)
+            .WithMany()
+            .HasForeignKey(lb => lb.LeaveTypeId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.Entity<Notification>()
+            .HasOne(n => n.User)
+            .WithMany()
+            .HasForeignKey(n => n.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Entity<Timesheet>()
+            .HasOne(t => t.Employee)
+            .WithMany()
+            .HasForeignKey(t => t.EmployeeId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Entity<TimesheetEntry>()
+            .HasOne(te => te.Timesheet)
+            .WithMany(t => t.Entries)
+            .HasForeignKey(te => te.TimesheetId)
             .OnDelete(DeleteBehavior.Cascade);
     }
 }

@@ -37,7 +37,10 @@ public class UsersController : ControllerBase
                 u.EmployeeId,
                 u.IsActive,
                 u.CreatedDate,
-                ProfilePicture = u.Employee != null ? u.Employee.ProfilePicture : null
+                ProfilePicture = u.Employee != null ? u.Employee.ProfilePicture : null,
+                DepartmentName = u.Employee != null && u.Employee.Department != null ? u.Employee.Department.DepartmentName : null,
+                PositionTitle = u.Employee != null && u.Employee.Position != null ? u.Employee.Position.PositionTitle : null,
+                HireDate = u.Employee != null ? (DateTime?)u.Employee.HireDate : null
             })
             .ToListAsync();
 
@@ -57,6 +60,9 @@ public class UsersController : ControllerBase
                 user.IsActive,
                 user.CreatedDate,
                 user.ProfilePicture,
+                user.DepartmentName,
+                user.PositionTitle,
+                user.HireDate,
                 Roles = roles
             });
         }

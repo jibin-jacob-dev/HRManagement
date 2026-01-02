@@ -59,18 +59,25 @@ The React-based Single Page Application (SPA).
 ### 2. Employee Profile Management
 *   **Comprehensive Data:** Personal Info, Professional Info, Education, Experience, Certifications.
 *   **Document Management:** Profile picture upload with cropping functionality.
+*   **Enhanced Directory:** Filterable employee list with hidden system IDs and clear organizational data (Department, Position, Hire Date).
 
-### 3. Organizational Master Data
+### 3. Leave Balance Management
+*   **Tracking:** View and manage leave allocations per employee and year.
+*   **Validation:** Built-in safeguards against duplicate balance creation.
+*   **Initialization:** Bulk initialize leave balances for all employees for a new year.
+*   **Smart Input:** Auto-filling of total days based on leave type defaults.
+
+### 4. Organizational Master Data
 *   **Departments:** Manage company departments.
 *   **Positions:** Define job titles and hierarchies.
 *   **Levels:** clear definition of seniority levels (L1, L2, etc.).
 
-### 4. Dynamic System Administration
+### 5. Dynamic System Administration
 *   **Dynamic Menus:** Sidebar menus are database-driven and customizable via `MenuManagement`.
 *   **Role Management:** Create custom roles and drag-and-drop/checkbox assign permissions.
 *   **User Management:** detailed control over user accounts, statuses, and role assignments.
 
-### 5. Advanced UI/UX
+### 6. Advanced UI/UX
 *   **Dark/Light Mode:** System-wide theme toggling.
 *   **AG Grid Integration:** High-performance data tables with filtering, sorting, and pagination.
 *   **Responsive Design:** Mobile-friendly layout using Bootstrap.
