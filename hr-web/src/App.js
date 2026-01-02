@@ -14,6 +14,7 @@ import DepartmentManagement from './pages/DepartmentManagement';
 import PositionManagement from './pages/PositionManagement';
 import LevelManagement from './pages/LevelManagement';
 import { MenuProvider } from './context/MenuContext';
+import { NotificationProvider } from './context/NotificationContext';
 import Layout from './components/layout/Layout';
 import Profile from './pages/Profile';
 import EmployeeList from './pages/EmployeeList';
@@ -42,7 +43,8 @@ function App() {
                         element={
                             <ProtectedRoute>
                                 <MenuProvider>
-                                    <Layout>
+                                    <NotificationProvider>
+                                        <Layout>
                                         <Routes>
                                             <Route path="/dashboard" element={<Dashboard />} />
                                             <Route path="/user-management" element={<UserManagement />} />
@@ -67,7 +69,8 @@ function App() {
                                             <Route path="/" element={<Navigate to="/dashboard" />} />
                                         </Routes>
                                     </Layout>
-                                </MenuProvider>
+                                </NotificationProvider>
+                            </MenuProvider>
                             </ProtectedRoute>
                         } 
                     />

@@ -4,6 +4,8 @@ using Microsoft.EntityFrameworkCore;
 using HR.Core.Data;
 using HR.Core.Models;
 using System.Security.Claims;
+using Microsoft.AspNetCore.SignalR;
+using HR.Api.Hubs;
 
 namespace HR.Api.Controllers;
 
@@ -13,10 +15,12 @@ namespace HR.Api.Controllers;
 public class LeaveController : ControllerBase
 {
     private readonly ApplicationDbContext _context;
+    private readonly IHubContext<NotificationHub> _hubContext;
 
-    public LeaveController(ApplicationDbContext context)
+    public LeaveController(ApplicationDbContext context, IHubContext<NotificationHub> hubContext)
     {
         _context = context;
+        _hubContext = hubContext;
     }
 
     // GET: api/Leave/calculate-days
@@ -123,6 +127,33 @@ public class LeaveController : ControllerBase
 
         _context.Leaves.Add(leave);
         await _context.SaveChangesAsync();
+
+        // Send notification to Manager/Admin
+        var managerId = user.Employee.ReportsToId != null 
+            ? (await _context.Users.FirstOrDefaultAsync(u => u.EmployeeId == user.Employee.ReportsToId))?.Id 
+            : null;
+
+        var leaveType = await _context.LeaveTypes.FindAsync(dto.LeaveTypeId);
+        var notificationTitle = "New Leave Request";
+        var notificationMsg = $"{user.FirstName} {user.LastName} applied for {leaveType?.Name} from {dto.StartDate:yyyy-MM-dd} to {dto.EndDate:yyyy-MM-dd}.";
+
+        if (managerId != null)
+        {
+            await CreateAndSendNotification(managerId, notificationTitle, notificationMsg, "LeaveRequest", "/leave-approvals");
+        }
+        else
+        {
+            // If no manager, notify admins
+            var admins = await _context.UserRoles
+                .Where(ur => ur.RoleId == _context.Roles.FirstOrDefault(r => r.Name == "Admin").Id)
+                .Select(ur => ur.UserId)
+                .ToListAsync();
+            
+            foreach (var adminId in admins)
+            {
+                await CreateAndSendNotification(adminId, notificationTitle, notificationMsg, "LeaveRequest", "/leave-approvals");
+            }
+        }
 
         return CreatedAtAction(nameof(GetLeave), new { id = leave.LeaveId }, leave);
     }
@@ -265,6 +296,16 @@ public class LeaveController : ControllerBase
 
             await _context.SaveChangesAsync();
             await transaction.CommitAsync();
+
+            // Send notification to Employee
+            var employeeUser = await _context.Users.FirstOrDefaultAsync(u => u.EmployeeId == leave.EmployeeId);
+            if (employeeUser != null)
+            {
+                var leaveType = await _context.LeaveTypes.FindAsync(leave.LeaveTypeId);
+                await CreateAndSendNotification(employeeUser.Id, "Leave Approved", 
+                    $"Your {leaveType?.Name} from {leave.StartDate:yyyy-MM-dd} to {leave.EndDate:yyyy-MM-dd} has been approved.", 
+                    "LeaveApproval", "/leave-requests");
+            }
         }
         catch (Exception)
         {
@@ -293,6 +334,16 @@ public class LeaveController : ControllerBase
         leave.ApproverComments = dto.Comments;
 
         await _context.SaveChangesAsync();
+
+        // Send notification to Employee
+        var employeeUser = await _context.Users.FirstOrDefaultAsync(u => u.EmployeeId == leave.EmployeeId);
+        if (employeeUser != null)
+        {
+            var leaveType = await _context.LeaveTypes.FindAsync(leave.LeaveTypeId);
+            await CreateAndSendNotification(employeeUser.Id, "Leave Rejected", 
+                $"Your {leaveType?.Name} from {leave.StartDate:yyyy-MM-dd} to {leave.EndDate:yyyy-MM-dd} has been rejected.", 
+                "LeaveRejection", "/leave-requests");
+        }
 
         return Ok(new { message = "Leave rejected." });
     }
@@ -324,6 +375,34 @@ public class LeaveController : ControllerBase
         _context.Leaves.Remove(leave);
         await _context.SaveChangesAsync();
         return NoContent();
+    }
+
+    private async Task CreateAndSendNotification(string userId, string title, string message, string type, string? targetUrl = null)
+    {
+        var notification = new Notification
+        {
+            UserId = userId,
+            Title = title,
+            Message = message,
+            Type = type,
+            TargetUrl = targetUrl,
+            CreatedDate = DateTime.UtcNow,
+            IsRead = false
+        };
+
+        _context.Notifications.Add(notification);
+        await _context.SaveChangesAsync();
+
+        await _hubContext.Clients.User(userId).SendAsync("ReceiveNotification", new
+        {
+            notification.NotificationId,
+            notification.Title,
+            notification.Message,
+            notification.Type,
+            notification.TargetUrl,
+            notification.CreatedDate,
+            notification.IsRead
+        });
     }
 }
 

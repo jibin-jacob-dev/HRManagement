@@ -26,6 +26,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
     public DbSet<LeaveType> LeaveTypes { get; set; }
     public DbSet<LeaveBalance> LeaveBalances { get; set; }
     public DbSet<PublicHoliday> PublicHolidays { get; set; }
+    public DbSet<Notification> Notifications { get; set; }
     
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -132,5 +133,11 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
             .WithMany()
             .HasForeignKey(lb => lb.LeaveTypeId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        builder.Entity<Notification>()
+            .HasOne(n => n.User)
+            .WithMany()
+            .HasForeignKey(n => n.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }
