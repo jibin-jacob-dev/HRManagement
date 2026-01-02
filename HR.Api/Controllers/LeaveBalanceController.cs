@@ -33,9 +33,9 @@ public class LeaveBalanceController : ControllerBase
         var balances = await query
             .Select(lb => new
             {
-                Id = lb.LeaveBalanceId,
+                lb.LeaveBalanceId,
                 lb.EmployeeId,
-                EmployeeName = $"{lb.Employee.FirstName} {lb.Employee.LastName}",
+                EmployeeName = lb.Employee.FirstName + " " + lb.Employee.LastName,
                 lb.LeaveTypeId,
                 LeaveTypeName = lb.LeaveType.Name,
                 lb.Year,
@@ -75,7 +75,7 @@ public class LeaveBalanceController : ControllerBase
             .Where(lb => lb.EmployeeId == employeeId && lb.Year == year)
             .Select(lb => new
             {
-                Id = lb.LeaveBalanceId,
+                lb.LeaveBalanceId,
                 lb.LeaveTypeId,
                 LeaveTypeName = lb.LeaveType.Name,
                 lb.Year,
@@ -94,6 +94,17 @@ public class LeaveBalanceController : ControllerBase
     [Authorize(Roles = "Admin,HR Manager")]
     public async Task<ActionResult<LeaveBalance>> CreateLeaveBalance(LeaveBalanceDto dto)
     {
+        var existingBalance = await _context.LeaveBalances
+            .FirstOrDefaultAsync(lb => 
+                lb.EmployeeId == dto.EmployeeId && 
+                lb.LeaveTypeId == dto.LeaveTypeId && 
+                lb.Year == dto.Year);
+
+        if (existingBalance != null)
+        {
+            return BadRequest(new { message = "A leave balance for this employee, leave type, and year already exists." });
+        }
+
         var leaveBalance = new LeaveBalance
         {
             EmployeeId = dto.EmployeeId,
@@ -195,9 +206,9 @@ public class LeaveBalanceDto
     public int EmployeeId { get; set; }
     public int LeaveTypeId { get; set; }
     public int Year { get; set; }
-    public int TotalDays { get; set; }
-    public int UsedDays { get; set; }
-    public int CarryForwardDays { get; set; }
+    public decimal TotalDays { get; set; }
+    public decimal UsedDays { get; set; }
+    public decimal CarryForwardDays { get; set; }
 }
 
 public class InitializeYearDto
