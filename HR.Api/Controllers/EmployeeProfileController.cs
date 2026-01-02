@@ -107,18 +107,33 @@ public class EmployeeProfileController : ControllerBase
     [HttpPut("personal")]
     public async Task<IActionResult> UpdatePersonalInfo([FromBody] Employee updateData)
     {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        var user = await _context.Users
-            .Include(u => u.Employee)
-                .ThenInclude(e => e.Department)
-            .Include(u => u.Employee)
-                .ThenInclude(e => e.Position)
-            .FirstOrDefaultAsync(u => u.Id == userId);
+        Employee employee;
 
-        if (user == null || user.Employee == null)
-            return NotFound("Employee profile not found");
+        if (User.IsInRole("Admin") && updateData.EmployeeId > 0)
+        {
+            employee = await _context.Employees
+                .Include(e => e.Department)
+                .Include(e => e.Position)
+                .FirstOrDefaultAsync(e => e.EmployeeId == updateData.EmployeeId);
 
-        var employee = user.Employee;
+            if (employee == null)
+                return NotFound("Target employee profile not found");
+        }
+        else
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var user = await _context.Users
+                .Include(u => u.Employee)
+                    .ThenInclude(e => e.Department)
+                .Include(u => u.Employee)
+                    .ThenInclude(e => e.Position)
+                .FirstOrDefaultAsync(u => u.Id == userId);
+
+            if (user == null || user.Employee == null)
+                return NotFound("Employee profile not found");
+
+            employee = user.Employee;
+        }
 
         // Update personal fields
         if (User.IsInRole("Admin"))
@@ -189,18 +204,33 @@ public class EmployeeProfileController : ControllerBase
     [HttpPut("professional")]
     public async Task<IActionResult> UpdateProfessionalInfo([FromBody] Employee updateData)
     {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        var user = await _context.Users
-            .Include(u => u.Employee)
-                .ThenInclude(e => e.Department)
-            .Include(u => u.Employee)
-                .ThenInclude(e => e.Position)
-            .FirstOrDefaultAsync(u => u.Id == userId);
+        Employee employee;
 
-        if (user == null || user.Employee == null)
-            return NotFound("Employee profile not found");
+        if (User.IsInRole("Admin") && updateData.EmployeeId > 0)
+        {
+            employee = await _context.Employees
+                .Include(e => e.Department)
+                .Include(e => e.Position)
+                .FirstOrDefaultAsync(e => e.EmployeeId == updateData.EmployeeId);
 
-        var employee = user.Employee;
+            if (employee == null)
+                return NotFound("Target employee profile not found");
+        }
+        else
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var user = await _context.Users
+                .Include(u => u.Employee)
+                    .ThenInclude(e => e.Department)
+                .Include(u => u.Employee)
+                    .ThenInclude(e => e.Position)
+                .FirstOrDefaultAsync(u => u.Id == userId);
+
+            if (user == null || user.Employee == null)
+                return NotFound("Employee profile not found");
+
+            employee = user.Employee;
+        }
 
         // Non-sensitive fields (if any) could go here
         employee.JobTitle = updateData.JobTitle;
