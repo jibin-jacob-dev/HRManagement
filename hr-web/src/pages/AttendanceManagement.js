@@ -289,7 +289,7 @@ const AttendanceManagement = () => {
                             >
                                 <option value="">Select Employee</option>
                                 {employees.map(emp => (
-                                    <option key={emp.id} value={emp.id}>
+                                    <option key={emp.employeeId} value={emp.employeeId}>
                                         {emp.firstName} {emp.lastName}
                                     </option>
                                 ))}

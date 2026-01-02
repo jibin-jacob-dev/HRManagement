@@ -54,7 +54,7 @@ const LeaveTypes = () => {
         setEditingLeaveType(leaveType);
         setFormData({
             name: leaveType.name,
-            defaultDays: leaveType.defaultDays,
+            defaultDays: leaveType.defaultDaysPerYear,
             description: leaveType.description || '',
             isActive: leaveType.isActive
         });
@@ -64,7 +64,7 @@ const LeaveTypes = () => {
     const handleSave = async () => {
         try {
             if (editingLeaveType) {
-                await leaveTypeService.updateLeaveType(editingLeaveType.id, formData);
+                await leaveTypeService.updateLeaveType(editingLeaveType.leaveTypeId, formData);
                 alertService.showToast('Leave type updated successfully');
             } else {
                 await leaveTypeService.createLeaveType(formData);
@@ -78,7 +78,13 @@ const LeaveTypes = () => {
     };
 
     const handleDelete = async (id) => {
-        if (window.confirm('Are you sure you want to delete this leave type?')) {
+        const confirmed = await alertService.showConfirm(
+            'Delete Leave Type?',
+            'Are you sure you want to delete this leave type? This will not affect existing records but will prevent new ones.',
+            'Yes, Delete It'
+        );
+
+        if (confirmed) {
             try {
                 await leaveTypeService.deleteLeaveType(id);
                 alertService.showToast('Leave type deleted successfully');
@@ -99,7 +105,7 @@ const LeaveTypes = () => {
         },
         {
             headerName: 'Default Days',
-            field: 'defaultDays',
+            field: 'defaultDaysPerYear',
             flex: 1,
             filter: true,
             sortable: true
@@ -138,7 +144,7 @@ const LeaveTypes = () => {
                             <Button
                                 variant="link"
                                 className="p-0 grid-action-btn text-danger"
-                                onClick={() => handleDelete(params.data.id)}
+                                onClick={() => handleDelete(params.data.leaveTypeId)}
                                 title="Delete Leave Type"
                             >
                                 <i className="fas fa-trash-alt"></i>

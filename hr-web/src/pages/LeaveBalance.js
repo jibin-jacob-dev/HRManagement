@@ -94,7 +94,7 @@ const LeaveBalance = () => {
     const handleSave = async () => {
         try {
             if (editingBalance) {
-                await leaveBalanceService.updateLeaveBalance(editingBalance.id, formData);
+                await leaveBalanceService.updateLeaveBalance(editingBalance.leaveBalanceId, formData);
                 alertService.showToast('Leave balance updated successfully');
             } else {
                 await leaveBalanceService.createLeaveBalance(formData);
@@ -108,7 +108,13 @@ const LeaveBalance = () => {
     };
 
     const handleDelete = async (id) => {
-        if (window.confirm('Are you sure you want to delete this leave balance?')) {
+        const confirmed = await alertService.showConfirm(
+            'Delete Leave Balance?',
+            'Are you sure you want to delete this leave balance? This action cannot be undone.',
+            'Yes, Delete It'
+        );
+
+        if (confirmed) {
             try {
                 await leaveBalanceService.deleteLeaveBalance(id);
                 alertService.showToast('Leave balance deleted successfully');
@@ -203,7 +209,7 @@ const LeaveBalance = () => {
                             <Button
                                 variant="link"
                                 className="p-0 grid-action-btn text-danger"
-                                onClick={() => handleDelete(params.data.id)}
+                                onClick={() => handleDelete(params.data.leaveBalanceId)}
                                 title="Delete Balance"
                             >
                                 <i className="fas fa-trash-alt"></i>
@@ -299,7 +305,7 @@ const LeaveBalance = () => {
                             >
                                 <option value="">Select Leave Type</option>
                                 {leaveTypes.map(lt => (
-                                    <option key={lt.id} value={lt.id}>
+                                    <option key={lt.leaveTypeId} value={lt.leaveTypeId}>
                                         {lt.name}
                                     </option>
                                 ))}
