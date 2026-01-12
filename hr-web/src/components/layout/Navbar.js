@@ -6,6 +6,7 @@ import ThemeToggle from '../common/ThemeToggle';
 import FontSizeControl from '../common/FontSizeControl';
 import { useNotifications } from '../../context/NotificationContext';
 import { formatDistanceToNow } from 'date-fns';
+import './Navbar.css';
 
 const CustomNavbar = ({ toggleSidebar, isCollapsed }) => {
     const navigate = useNavigate();
@@ -182,9 +183,9 @@ const CustomNavbar = ({ toggleSidebar, isCollapsed }) => {
                             </div>
                         </Dropdown.Toggle>
                         <Dropdown.Menu className="profile-menu shadow-lg border-0 mt-3 p-0">
-                            <div className="profile-header p-3 border-bottom bg-light-subtle">
+                            <div className="profile-header p-3 border-bottom">
                                 <div className="d-flex align-items-center gap-3">
-                                    <div className="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center shadow-sm flex-shrink-0" 
+                                    <div className="rounded-circle bg-white text-primary d-flex align-items-center justify-content-center shadow-sm flex-shrink-0" 
                                          style={{ width: '48px', height: '48px', fontWeight: 'bold', fontSize: '1.1rem' }}>
                                         {user?.profilePicture ? (
                                             <img 
@@ -200,15 +201,15 @@ const CustomNavbar = ({ toggleSidebar, isCollapsed }) => {
                                     </div>
                                     <div className="overflow-hidden">
                                         <h6 className="mb-0 fw-bold text-truncate">{user?.firstName} {user?.lastName}</h6>
-                                        <p className="text-muted small mb-0 text-truncate" style={{ fontSize: '0.75rem' }}>{user?.email}</p>
+                                        <p className="small mb-0 text-truncate opacity-75" style={{ fontSize: '0.75rem' }}>{user?.email}</p>
                                     </div>
                                 </div>
                                 <div className="d-flex flex-wrap gap-1 mt-2">
                                     {(user?.roles || []).map((role, index) => (
                                         <Badge 
                                             key={index} 
-                                            bg="primary" 
-                                            className="fw-normal bg-opacity-10 text-primary border border-primary-subtle"
+                                            bg="light" 
+                                            className="fw-normal text-white bg-opacity-25 border border-white border-opacity-25"
                                             style={{ fontSize: '0.6rem' }}
                                         >
                                             {role}
@@ -218,7 +219,7 @@ const CustomNavbar = ({ toggleSidebar, isCollapsed }) => {
                             </div>
                             
                             <div className="p-2">
-                                <div className="px-3 py-2">
+                                <div className="px-2 py-1">
                                     <div className="small fw-bold text-muted mb-2 text-uppercase" style={{ fontSize: '0.6rem', letterSpacing: '0.05rem' }}>
                                         Account
                                     </div>
@@ -226,11 +227,11 @@ const CustomNavbar = ({ toggleSidebar, isCollapsed }) => {
                                         <i className="fas fa-user-circle me-3 opacity-75 text-primary"></i> My Profile
                                     </Dropdown.Item>
                                     <Dropdown.Item as={Link} to="/settings" className="rounded-2 py-2 small">
-                                        <i className="fas fa-cog me-3 opacity-75 text-primary"></i> Account Settings
+                                        <i className="fas fa-cog me-3 opacity-75 text-success"></i> Account Settings
                                     </Dropdown.Item>
                                 </div>
 
-                                <div className="px-3 py-2 border-top mt-2 overflow-hidden">
+                                <div className="px-2 py-1 border-top mt-2 overflow-hidden">
                                     <div className="small fw-bold text-muted mb-2 text-uppercase" style={{ fontSize: '0.6rem', letterSpacing: '0.05rem' }}>
                                         Experience & Preferences
                                     </div>
@@ -243,7 +244,7 @@ const CustomNavbar = ({ toggleSidebar, isCollapsed }) => {
                                     </div>
                                 </div>
 
-                                <div className="px-3 py-2 border-top mt-2">
+                                <div className="px-2 py-1 border-top mt-2">
                                     <Dropdown.Item onClick={handleLogout} className="text-danger rounded-2 py-2 small">
                                         <i className="fas fa-sign-out-alt me-3 opacity-75"></i> Sign Out
                                     </Dropdown.Item>

@@ -1,0 +1,226 @@
+/* Profile Dropdown Styling */
+.profile-dropdown .dropdown-toggle {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0;
+    background: transparent !important;
+    border: none !important;
+}
+
+.profile-dropdown .dropdown-toggle:hover,
+.profile-dropdown .dropdown-toggle:focus,
+.profile-dropdown .dropdown-toggle:active {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+.profile-dropdown .dropdown-toggle::after {
+    display: none;
+}
+
+.profile-menu {
+    min-width: 320px;
+    border-radius: 16px !important;
+    overflow: hidden;
+    animation: slideDown 0.2s ease;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.profile-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    border: none !important;
+    color: white !important;
+}
+
+.profile-header h6,
+.profile-header p {
+    color: white !important;
+}
+
+.profile-header .badge {
+    background: rgba(255, 255, 255, 0.2) !important;
+    color: white !important;
+    border: 1px solid rgba(255, 255, 255, 0.3) !important;
+}
+
+.profile-menu .dropdown-item {
+    padding: 0.5rem 0.75rem;
+    transition: all 0.2s ease;
+    border-radius: 8px;
+    margin: 0.15rem 0;
+}
+
+.profile-menu .dropdown-item:hover {
+    background: rgba(102, 126, 234, 0.08);
+    transform: translateX(2px);
+}
+
+.profile-menu .dropdown-item i {
+    width: 20px;
+    text-align: center;
+}
+
+.profile-menu .text-danger:hover {
+    background: rgba(220, 53, 69, 0.08) !important;
+}
+
+/* Section Headers */
+.profile-menu .small.fw-bold.text-muted {
+    color: #6c757d !important;
+    font-size: 0.65rem !important;
+    letter-spacing: 0.08rem;
+    margin-bottom: 0.5rem;
+}
+
+/* Notification Dropdown */
+.notification-dropdown .dropdown-toggle {
+    background: transparent !important;
+    border: none !important;
+}
+
+.notification-dropdown .dropdown-toggle:hover,
+.notification-dropdown .dropdown-toggle:focus {
+    background: transparent !important;
+    box-shadow: none !important;
+}
+
+.notification-bell {
+    transition: all 0.2s ease;
+}
+
+.notification-bell:hover {
+    transform: scale(1.1);
+}
+
+.notification-bell.has-unread {
+    animation: bellRing 2s ease infinite;
+}
+
+@keyframes bellRing {
+    0%, 100% { transform: rotate(0deg); }
+    10%, 30% { transform: rotate(-10deg); }
+    20%, 40% { transform: rotate(10deg); }
+}
+
+.notification-menu {
+    min-width: 380px;
+    max-width: 420px;
+    border-radius: 16px !important;
+    animation: slideDown 0.2s ease;
+}
+
+.notification-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-bottom: none !important;
+}
+
+.notification-header h6 {
+    color: white !important;
+}
+
+.notification-header .mark-all-btn {
+    color: rgba(255, 255, 255, 0.9) !important;
+    font-size: 0.8rem;
+}
+
+.notification-header .mark-all-btn:hover {
+    color: white !important;
+    text-decoration: underline !important;
+}
+
+.notification-item {
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.notification-item:hover {
+    background: rgba(102, 126, 234, 0.05);
+}
+
+.notification-item.unread {
+    background: rgba(102, 126, 234, 0.08);
+    border-left: 3px solid #667eea;
+}
+
+.notification-icon-wrapper {
+    width: 40px;
+    height: 40px;
+}
+
+.notification-icon-wrapper.type-leaverequest {
+    background: rgba(59, 130, 246, 0.1);
+    color: #3b82f6;
+}
+
+.notification-icon-wrapper.type-leaveapproval {
+    background: rgba(34, 197, 94, 0.1);
+    color: #22c55e;
+}
+
+.notification-icon-wrapper.type-leaverejection {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+}
+
+.notification-footer {
+    background: rgba(102, 126, 234, 0.03);
+}
+
+.empty-notifications {
+    padding: 3rem 1rem !important;
+}
+
+.empty-icon-bg {
+    width: 80px;
+    height: 80px;
+    background: rgba(108, 117, 125, 0.1);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+}
+
+.empty-icon-bg i {
+    font-size: 2rem;
+    color: #6c757d;
+}
+
+/* Dark Mode Adjustments */
+[data-bs-theme='dark'] .profile-menu .dropdown-item:hover {
+    background: rgba(102, 126, 234, 0.15);
+}
+
+[data-bs-theme='dark'] .notification-item:hover {
+    background: rgba(102, 126, 234, 0.1);
+}
+
+[data-bs-theme='dark'] .notification-item.unread {
+    background: rgba(102, 126, 234, 0.15);
+}
+
+[data-bs-theme='dark'] .notification-footer {
+    background: rgba(255, 255, 255, 0.03);
+}
+
+/* Profile Picture Hover Effect */
+.profile-dropdown .rounded-circle {
+    transition: all 0.3s ease;
+}
+
+.profile-dropdown .dropdown-toggle:hover .rounded-circle {
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15);
+}

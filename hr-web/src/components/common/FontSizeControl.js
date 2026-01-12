@@ -18,7 +18,7 @@ const FontSizeControl = () => {
                 title={`${fontSize}%`}
             />
             <span className="text-muted" style={{ fontSize: '1rem' }}>A</span>
-            <span className="badge bg-light text-dark border ms-1 fw-medium" style={{ fontSize: '0.65rem', minWidth: '40px' }}>
+            <span className="badge bg-secondary text-white border border-secondary-subtle ms-1 fw-medium" style={{ fontSize: '0.65rem', minWidth: '40px' }}>
                 {fontSize}%
             </span>
         </div>
