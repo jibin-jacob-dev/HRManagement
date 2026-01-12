@@ -1,0 +1,64 @@
+/* Salary Components Premium Styles */
+
+.salary-components-container {
+    padding: 0;
+    background-color: transparent;
+}
+
+/* Search Box Container */
+.search-box-wrapper {
+    position: relative;
+    max-width: 320px;
+}
+
+.search-icon {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #6c757d;
+    pointer-events: none;
+    z-index: 5;
+}
+
+.search-input {
+    padding-left: 40px !important;
+    padding-right: 15px !important;
+    height: 42px !important;
+    border-radius: 10px !important;
+    font-size: 0.95rem !important;
+    box-shadow: none !important;
+}
+
+/* Action Buttons Overlay */
+.grid-action-btn {
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+.grid-action-btn:hover {
+    background-color: rgba(13, 110, 253, 0.1);
+    transform: translateY(-1px);
+}
+
+/* Custom switch colors */
+.custom-switch .form-check-input:checked {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+}
+
+[data-bs-theme='dark'] .search-input {
+    background-color: #1e1e1e !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+    color: #e9ecef !important;
+}
+
+[data-bs-theme='dark'] .search-icon {
+    color: #adb5bd;
+}

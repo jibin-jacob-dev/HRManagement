@@ -2,6 +2,8 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using HR.Core.Data;
 using HR.Core.Models;
+using HR.Core.Models.PayrollManagement;
+
 
 namespace HR.Api.Data;
 
@@ -96,6 +98,7 @@ public static class DataSeeder
             await userManager.AddToRoleAsync(adminUser, "Admin");
         }
 
+
         // 5. Seed Menus and Permissions
         if (!await dbContext.Menus.AnyAsync())
         {
@@ -134,6 +137,7 @@ public static class DataSeeder
                 await dbContext.SaveChangesAsync();
             }
         }
+        // Removed dynamic payroll menu seeding to prevent duplicates as per user request
 
         // 6. Seed Leave Types
         if (!await dbContext.LeaveTypes.AnyAsync())
@@ -185,5 +189,61 @@ public static class DataSeeder
             }
         }
         await dbContext.SaveChangesAsync();
+
+        // 9. Seed Salary Components
+        var existingComponents = await dbContext.SalaryComponents.Select(c => c.Name).ToListAsync();
+        var componentsToSeed = new List<SalaryComponent>
+        {
+            new SalaryComponent { Name = "Basic Salary", Type = SalaryComponentType.Earning, IsTaxable = true, IsActive = true },
+            new SalaryComponent { Name = "House Rent Allowance (HRA)", Type = SalaryComponentType.Earning, IsTaxable = true, IsActive = true },
+            new SalaryComponent { Name = "Dearness Allowance (DA)", Type = SalaryComponentType.Earning, IsTaxable = true, IsActive = true },
+            new SalaryComponent { Name = "Conveyance Allowance", Type = SalaryComponentType.Earning, IsTaxable = false, IsActive = true },
+            new SalaryComponent { Name = "Medical Allowance", Type = SalaryComponentType.Earning, IsTaxable = false, IsActive = true },
+            new SalaryComponent { Name = "Provident Fund (PF)", Type = SalaryComponentType.Deduction, IsTaxable = false, IsActive = true },
+            new SalaryComponent { Name = "Professional Tax", Type = SalaryComponentType.Deduction, IsTaxable = false, IsActive = true },
+            new SalaryComponent { Name = "Income Tax (TDS)", Type = SalaryComponentType.Deduction, IsTaxable = false, IsActive = true }
+        };
+
+        bool anyNewAdded = false;
+        foreach (var comp in componentsToSeed)
+        {
+            if (!existingComponents.Contains(comp.Name))
+            {
+                dbContext.SalaryComponents.Add(comp);
+                anyNewAdded = true;
+            }
+        }
+        
+        if (anyNewAdded)
+        {
+            await dbContext.SaveChangesAsync();
+        }
+
+        // 10. Seed Salary Structure for Admin Employee
+        var adminEmployee = await dbContext.Employees.FirstOrDefaultAsync(e => e.Email == adminEmail);
+        if (adminEmployee != null && !await dbContext.EmployeeSalaryStructures.AnyAsync(s => s.EmployeeId == adminEmployee.EmployeeId))
+        {
+            var basicComp = await dbContext.SalaryComponents.FirstOrDefaultAsync(c => c.Name == "Basic Salary");
+            var hraComp = await dbContext.SalaryComponents.FirstOrDefaultAsync(c => c.Name == "House Rent Allowance (HRA)");
+            var pfComp = await dbContext.SalaryComponents.FirstOrDefaultAsync(c => c.Name == "Provident Fund (PF)");
+
+            var structure = new List<EmployeeSalaryStructure>();
+
+            if (basicComp != null)
+                structure.Add(new EmployeeSalaryStructure { EmployeeId = adminEmployee.EmployeeId, SalaryComponentId = basicComp.Id, Amount = 50000, EffectiveDate = DateTime.Now.AddYears(-1) });
+            
+            if (hraComp != null)
+                structure.Add(new EmployeeSalaryStructure { EmployeeId = adminEmployee.EmployeeId, SalaryComponentId = hraComp.Id, Amount = 20000, EffectiveDate = DateTime.Now.AddYears(-1) });
+            
+            if (pfComp != null)
+                structure.Add(new EmployeeSalaryStructure { EmployeeId = adminEmployee.EmployeeId, SalaryComponentId = pfComp.Id, Amount = 1800, EffectiveDate = DateTime.Now.AddYears(-1) });
+
+            if (structure.Any())
+            {
+                await dbContext.EmployeeSalaryStructures.AddRangeAsync(structure);
+                await dbContext.SaveChangesAsync();
+            }
+        }
     }
 }
+

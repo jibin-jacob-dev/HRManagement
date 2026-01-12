@@ -1,0 +1,108 @@
+/* Payroll Processing Premium Styles */
+
+.payroll-container {
+    padding: 0;
+}
+
+.processing-card {
+    background: var(--bs-body-bg);
+    border-radius: 16px;
+    border: 1px solid var(--bs-border-color);
+    padding: 2rem;
+    margin-bottom: 2rem;
+}
+
+.status-badge {
+    padding: 2px 10px;
+    border-radius: 4px;
+    font-weight: 600;
+    font-size: 0.7rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    height: 22px;
+}
+
+.status-draft {
+    background: rgba(255, 193, 7, 0.1);
+    color: #ffc107;
+    border: 1px solid rgba(255, 193, 7, 0.2);
+}
+
+.status-finalized {
+    background: rgba(25, 135, 84, 0.1);
+    color: #198754;
+    border: 1px solid rgba(25, 135, 84, 0.2);
+}
+
+.summary-item {
+    padding: 1rem;
+    border-radius: 12px;
+    background: var(--bs-light);
+    border: 1px solid var(--bs-border-color);
+}
+
+[data-bs-theme='dark'] .summary-item {
+    background: #1e1e1e;
+}
+
+.run-details-header {
+    background: linear-gradient(45deg, #0d6efd, #0a58ca);
+    color: white;
+    padding: 1.5rem;
+    border-radius: 16px 16px 0 0;
+}
+
+.amount-column {
+    font-family: 'JetBrains Mono', 'Courier New', Courier, monospace;
+    font-weight: 600;
+}
+
+.month-selector {
+    min-width: 150px;
+}
+
+.year-selector {
+    min-width: 120px;
+}
+
+/* Modal Enhancements */
+.payroll-details-modal .modal-content {
+    border-radius: 16px;
+    overflow: hidden;
+    border: none;
+}
+
+.payroll-details-modal .modal-body {
+    padding: 0;
+}
+
+.payroll-details-grid {
+    height: 60vh;
+    width: 100%;
+}
+
+.grid-fullscreen-container {
+    height: calc(100vh - 280px); /* Adjust based on header/padding */
+    width: 100%;
+    min-height: 400px;
+}
+
+[data-bs-theme='dark'] .react-select__control {
+    background-color: #1e1e1e !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+[data-bs-theme='dark'] .react-select__menu {
+    background-color: #1e1e1e !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+[data-bs-theme='dark'] .react-select__option--is-focused {
+    background-color: rgba(13, 110, 253, 0.2) !important;
+}
+
+[data-bs-theme='dark'] .react-select__single-value {
+    color: #f8f9fa !important;
+}

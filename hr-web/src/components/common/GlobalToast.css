@@ -1,0 +1,62 @@
+/* Global Toast Custom Styles */
+
+.custom-toast {
+    background: white;
+    color: #212529;
+    border-radius: 12px !important;
+    overflow: hidden;
+    border: none !important;
+    position: relative;
+    backdrop-filter: blur(10px);
+    transition: all 0.3s ease;
+    animation: toastSlideIn 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+
+@keyframes toastSlideIn {
+    from {
+        opacity: 0;
+        transform: translateX(100%) translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0) translateY(0);
+    }
+}
+
+/* Icon Wrapper */
+.toast-icon-wrapper {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.2);
+    font-size: 1.2rem;
+}
+
+/* Variant Specific Styles */
+.toast-success {
+    background: linear-gradient(135deg, #198754, #20c997) !important;
+    color: white !important;
+}
+
+.toast-error {
+    background: linear-gradient(135deg, #dc3545, #f72585) !important;
+    color: white !important;
+}
+
+.toast-warning {
+    background: linear-gradient(135deg, #ffc107, #fd7e14) !important;
+    color: white !important;
+}
+
+.toast-info {
+    background: linear-gradient(135deg, #0d6efd, #0dcaf0) !important;
+    color: white !important;
+}
+
+/* Dark Mode Support */
+.custom-toast.dark-mode {
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5) !important;
+}

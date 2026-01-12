@@ -1,6 +1,6 @@
 import Swal from 'sweetalert2';
 
-// Toast Configuration
+// Toast Configuration (Deprecated for Toasts, keeping for legacy just in case, but unused for showToast now)
 const Toast = Swal.mixin({
     toast: true,
     position: 'top-end',
@@ -14,12 +14,12 @@ const Toast = Swal.mixin({
 });
 
 const alertService = {
-    // Toast Notifications
-    showToast: (title, icon = 'success') => {
-        Toast.fire({
-            icon: icon,
-            title: title
+    // Toast Notifications - Now uses Bootstrap GlobalToast via Event Bus
+    showToast: (title, icon = 'success', text = '') => {
+        const event = new CustomEvent('show-toast', { 
+            detail: { title, icon, text } 
         });
+        window.dispatchEvent(event);
     },
 
     // Standard Alerts
@@ -60,14 +60,14 @@ const alertService = {
     },
 
     // Confirmation Dialog
-    showConfirm: async (title, text, confirmButtonText = 'Yes, do it!', icon = 'warning') => {
+    showConfirm: async (title, text, confirmButtonText = 'Yes, do it!', icon = 'warning', confirmButtonColor = '#3085d6', cancelButtonColor = '#6c757d') => {
         const result = await Swal.fire({
             title: title,
             text: text,
             icon: icon,
             showCancelButton: true,
-            confirmButtonColor: '#d33',
-            cancelButtonColor: '#3085d6',
+            confirmButtonColor: confirmButtonColor,
+            cancelButtonColor: cancelButtonColor,
             confirmButtonText: confirmButtonText
         });
         return result.isConfirmed;

@@ -1,0 +1,124 @@
+/* My Payslips Premium Styles */
+
+.payslips-container {
+    padding: 0;
+}
+
+.payslip-summary-card {
+    background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+    color: white;
+    border-radius: 16px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 10px 30px rgba(13, 110, 253, 0.15);
+}
+
+.payslip-details-modal .modal-content {
+    border-radius: 20px;
+    border: none;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+}
+
+.payslip-header {
+    background: #f8f9fa;
+    padding: 2rem;
+    border-bottom: 2px dashed #dee2e6;
+    text-align: center;
+}
+
+[data-bs-theme='dark'] .payslip-header {
+    background: #1e1e1e;
+    border-bottom-color: #333;
+}
+
+.company-logo {
+    font-size: 2rem;
+    font-weight: 800;
+    color: #0d6efd;
+    margin-bottom: 0.5rem;
+}
+
+.payslip-body {
+    padding: 2rem;
+}
+
+.payroll-table {
+    width: 100%;
+    margin-bottom: 1rem;
+}
+
+.payroll-table th {
+    background: #f8f9fa;
+    padding: 10px;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    color: #6c757d;
+    border-bottom: 2px solid #dee2e6;
+}
+
+[data-bs-theme='dark'] .payroll-table th {
+    background: #252525;
+    border-bottom-color: #333;
+}
+
+.payroll-table td {
+    padding: 12px 10px;
+    border-bottom: 1px solid #eee;
+}
+
+[data-bs-theme='dark'] .payroll-table td {
+    border-bottom-color: #333;
+}
+
+.net-salary-section {
+    background: #0d6efd;
+    color: white;
+    padding: 1.5rem;
+    border-radius: 12px;
+    margin-top: 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.download-btn {
+    transition: all 0.3s ease;
+}
+
+.download-btn:hover {
+    transform: translateY(-2px);
+}
+
+/* Print Styles */
+@media print {
+    body * {
+        visibility: hidden;
+    }
+    .modal-content, .modal-content * {
+        visibility: visible;
+    }
+    .modal-content {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        box-shadow: none !important;
+        border: none !important;
+    }
+    /* Hide close button and footer actions in print */
+    .modal-footer {
+        display: none !important;
+    }
+    .btn-close {
+        display: none !important;
+    }
+    /* Ensure colors print correctly */
+    .bg-light {
+        background-color: #f8f9fa !important;
+        print-color-adjust: exact;
+    }
+    .text-primary {
+        color: #0d6efd !important;
+        print-color-adjust: exact;
+    }
+}

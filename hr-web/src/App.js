@@ -26,17 +26,18 @@ import LeaveTypes from './pages/LeaveTypes';
 import LeaveBalance from './pages/LeaveBalance';
 import Timesheets from './pages/Timesheets';
 import TimesheetApprovals from './pages/TimesheetApprovals';
-
-// Simple component to protect routes
-const ProtectedRoute = ({ children }) => {
-    const token = localStorage.getItem('token');
-    return token ? children : <Navigate to="/login" />;
-};
+import SalaryComponents from './pages/SalaryComponents';
+import SalaryStructure from './pages/SalaryStructure';
+import PayrollProcessing from './pages/PayrollProcessing';
+import MyPayslips from './pages/MyPayslips';
+import GlobalToast from './components/common/GlobalToast';
+import ProtectedRoute from './components/auth/ProtectedRoute';
 
 function App() {
     return (
         <ThemeProvider>
             <Router>
+                <GlobalToast />
                 <Routes>
                     <Route path="/login" element={<Login />} />
                     <Route path="/register" element={<Register />} />
@@ -67,7 +68,11 @@ function App() {
                                             <Route path="/leave-types" element={<LeaveTypes />} />
                                             <Route path="/leave-balance" element={<LeaveBalance />} />
                                             <Route path="/timesheets" element={<Timesheets />} />
-                                            <Route path="/timesheet-approvals" element={<TimesheetApprovals />} />
+                                             <Route path="/timesheet-approvals" element={<TimesheetApprovals />} />
+                                             <Route path="/salary-components" element={<SalaryComponents />} />
+                                             <Route path="/salary-structure" element={<SalaryStructure />} />
+                                             <Route path="/payroll-processing" element={<PayrollProcessing />} />
+                                             <Route path="/my-payslips" element={<MyPayslips />} />
                                             <Route path="/profile" element={<Profile />} />
                                             <Route path="/profile/:userId" element={<Profile />} />
                                             <Route path="/" element={<Navigate to="/dashboard" />} />

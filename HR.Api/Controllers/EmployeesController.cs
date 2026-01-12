@@ -48,11 +48,15 @@ public class EmployeesController : ControllerBase
     public async Task<ActionResult<IEnumerable<object>>> GetEmployeeList()
     {
         var employees = await _context.Employees
+            .Include(e => e.Department)
+            .Include(e => e.Position)
             .Select(e => new {
                 e.EmployeeId,
                 e.FirstName,
                 e.LastName,
-                e.ProfilePicture
+                e.ProfilePicture,
+                DepartmentName = e.Department != null ? e.Department.DepartmentName : "No Department",
+                PositionName = e.Position != null ? e.Position.PositionTitle : "No Position"
             })
             .ToListAsync();
         return Ok(employees);
