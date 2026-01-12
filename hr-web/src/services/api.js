@@ -10,28 +10,28 @@ const api = axios.create({
 });
 
 // Add a request interceptor to include the JWT token in headers
-api.interceptors.request.use(
-    (config) => {
-        const token = localStorage.getItem('token');
-        if (token) {
-            config.headers.Authorization = `Bearer ${token}`;
-        }
-        return config;
-    },
-    (error) => {
-        return Promise.reject(error);
+api.interceptors.request.use((config) => {
+    const token = localStorage.getItem('token');
+    if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
     }
-);
+    return config;
+}, (error) => {
+    return Promise.reject(error);
+});
 
 export const authService = {
     login: async (email, password) => {
-        const response = await api.post('/auth/login', { email, password });
+        const response = await api.post('/auth/login', {email, password});
         if (response.data.token) {
             localStorage.setItem('token', response.data.token);
             // Handle case sensitivity of Roles/roles from backend
             const backendUser = response.data.user;
             const roles = backendUser.roles || backendUser.Roles || [];
-            const userWithRoles = { ...backendUser, roles: roles };
+            const userWithRoles = {
+                ... backendUser,
+                roles: roles
+            };
             localStorage.setItem('user', JSON.stringify(userWithRoles));
         }
         return response.data;
@@ -50,7 +50,7 @@ export const authService = {
     },
     isAdmin: () => {
         const user = authService.getCurrentUser();
-        return user?.roles?.includes('Admin') || false;
+        return user ?. roles ?. includes('Admin') || false;
     }
 };
 
@@ -87,7 +87,7 @@ export const roleService = {
         return response.data;
     },
     createRole: async (roleName) => {
-        const response = await api.post('/roles', { name: roleName });
+        const response = await api.post('/roles', {name: roleName});
         return response.data;
     },
     deleteRole: async (roleName) => {
@@ -121,13 +121,16 @@ export const menuService = {
         const response = await api.get(`/menus/role/${roleId}`);
         return response.data; // Now returns list of objects { menuId, permissionType }
     },
-    updateRoleMenus: async (roleId, menuPermissions) => {
-        // menuPermissions should be array of { menuId, permissionType }
+    updateRoleMenus: async (roleId, menuPermissions) => { // menuPermissions should be array of { menuId, permissionType }
         const response = await api.post(`/menus/role/${roleId}`, menuPermissions);
         return response.data;
     },
     getCurrentUserMenus: async () => {
         const response = await api.get('/menus/current-user');
+        return response.data;
+    },
+    bulkUpdateMenus: async (updates) => {
+        const response = await api.post('/menus/bulk-update', updates);
         return response.data;
     }
 };
@@ -279,9 +282,15 @@ export const departmentService = {
 export const attendanceService = {
     getAttendances: async (startDate, endDate) => {
         const params = new URLSearchParams();
-        if (startDate) params.append('startDate', startDate);
-        if (endDate) params.append('endDate', endDate);
-        const response = await api.get(`/attendance?${params.toString()}`);
+        if (startDate) 
+            params.append('startDate', startDate);
+        
+        if (endDate) 
+            params.append('endDate', endDate);
+        
+        const response = await api.get(`/attendance?${
+            params.toString()
+        }`);
         return response.data;
     },
     getAttendance: async (id) => {
@@ -317,7 +326,12 @@ export const leaveService = {
         return response.data;
     },
     calculateDays: async (startDate, endDate) => {
-        const response = await api.get('/leave/calculate-days', { params: { startDate, endDate } });
+        const response = await api.get('/leave/calculate-days', {
+            params: {
+                startDate,
+                endDate
+            }
+        });
         return response.data;
     },
     getLeave: async (id) => {
@@ -333,11 +347,11 @@ export const leaveService = {
         return response.data;
     },
     approveLeave: async (id, comments) => {
-        const response = await api.post(`/leave/${id}/approve`, { comments });
+        const response = await api.post(`/leave/${id}/approve`, {comments});
         return response.data;
     },
     rejectLeave: async (id, comments) => {
-        const response = await api.post(`/leave/${id}/reject`, { comments });
+        const response = await api.post(`/leave/${id}/reject`, {comments});
         return response.data;
     },
     deleteLeave: async (id) => {
@@ -420,7 +434,7 @@ export const leaveBalanceService = {
         return response.data;
     },
     initializeYearBalances: async (year) => {
-        const response = await api.post('/leavebalance/initialize-year', { year });
+        const response = await api.post('/leavebalance/initialize-year', {year});
         return response.data;
     }
 };
@@ -471,13 +485,21 @@ export const timesheetService = {
     },
     getTeamHistory: async (filters = {}) => {
         const params = new URLSearchParams();
-        if (filters.status) params.append('status', filters.status);
-        if (filters.employeeName) params.append('employeeName', filters.employeeName);
-        if (filters.startDate) params.append('startDate', filters.startDate);
+        if (filters.status) 
+            params.append('status', filters.status);
+        
+        if (filters.employeeName) 
+            params.append('employeeName', filters.employeeName);
+        
+        if (filters.startDate) 
+            params.append('startDate', filters.startDate);
+        
 
         const queryString = params.toString();
-        const url = `/timesheets/team-history${queryString ? `?${queryString}` : ''}`;
-        
+        const url = `/timesheets/team-history${
+            queryString ? `?${queryString}` : ''
+        }`;
+
         const response = await api.get(url);
         return response.data;
     },
@@ -491,5 +513,7 @@ export const timesheetService = {
     }
 };
 
-export { API_URL };
+export {
+    API_URL
+};
 export default api;

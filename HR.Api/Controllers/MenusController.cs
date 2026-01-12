@@ -210,6 +210,35 @@ public class MenusController : ControllerBase
         return Ok(visibleMenus);
     }
 
+    [HttpPost("bulk-update")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> BulkUpdateMenus([FromBody] List<MenuBulkUpdateDto> updates)
+    {
+        if (updates == null || !updates.Any())
+            return BadRequest("No updates provided");
+
+        foreach (var update in updates)
+        {
+            var menu = await _context.Menus.FindAsync(update.Id);
+            if (menu != null)
+            {
+                menu.OrderIndex = update.OrderIndex;
+                menu.ParentId = update.ParentId;
+                _context.Entry(menu).State = EntityState.Modified;
+            }
+        }
+
+        await _context.SaveChangesAsync();
+        return Ok(new { message = "Menus updated successfully" });
+    }
+
+    public class MenuBulkUpdateDto
+    {
+        public int Id { get; set; }
+        public int OrderIndex { get; set; }
+        public int? ParentId { get; set; }
+    }
+
     private bool MenuExists(int id)
     {
         return _context.Menus.Any(e => e.Id == id);
