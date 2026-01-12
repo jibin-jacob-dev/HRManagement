@@ -139,10 +139,10 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 // Seed initial data
-// using (var scope = app.Services.CreateScope())
-// {
-//     await DataSeeder.SeedAsync(scope.ServiceProvider, builder.Configuration);
-// }
+using (var scope = app.Services.CreateScope())
+{
+    await DataSeeder.SeedAsync(scope.ServiceProvider, builder.Configuration);
+}
 
 app.MapControllers();
 app.MapHub<NotificationHub>("/notificationHub");

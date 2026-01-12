@@ -60,14 +60,14 @@ const alertService = {
     },
 
     // Confirmation Dialog
-    showConfirm: async (title, text, confirmButtonText = 'Yes, do it!', icon = 'warning') => {
+    showConfirm: async (title, text, confirmButtonText = 'Yes, do it!', icon = 'warning', confirmButtonColor = '#3085d6', cancelButtonColor = '#6c757d') => {
         const result = await Swal.fire({
             title: title,
             text: text,
             icon: icon,
             showCancelButton: true,
-            confirmButtonColor: '#d33',
-            cancelButtonColor: '#3085d6',
+            confirmButtonColor: confirmButtonColor,
+            cancelButtonColor: cancelButtonColor,
             confirmButtonText: confirmButtonText
         });
         return result.isConfirmed;

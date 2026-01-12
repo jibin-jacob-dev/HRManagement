@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using HR.Core.Models;
+using HR.Core.Models.PayrollManagement;
 
 namespace HR.Core.Data;
 
@@ -16,7 +17,15 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
     public DbSet<Position> Positions { get; set; }
     public DbSet<Leave> Leaves { get; set; }
     public DbSet<Attendance> Attendances { get; set; }
-    public DbSet<Payroll> Payrolls { get; set; }
+    public DbSet<Payroll> Payrolls { get; set; } // Legacy or Simple Payroll
+    
+    // New Payroll System Entities
+    public DbSet<SalaryComponent> SalaryComponents { get; set; }
+    public DbSet<EmployeeSalaryStructure> EmployeeSalaryStructures { get; set; }
+    public DbSet<PayrollRun> PayrollRuns { get; set; }
+    public DbSet<EmployeePayroll> EmployeePayrolls { get; set; }
+    public DbSet<PayrollDetail> PayrollDetails { get; set; }
+
     public DbSet<Menu> Menus { get; set; }
     public DbSet<RoleMenu> RoleMenus { get; set; }
     public DbSet<EmployeeExperience> EmployeeExperiences { get; set; }

@@ -513,6 +513,83 @@ export const timesheetService = {
     }
 };
 
+export const salaryComponentService = {
+    getSalaryComponents: async () => {
+        const response = await api.get('/salarycomponents');
+        return response.data;
+    },
+    getSalaryComponent: async (id) => {
+        const response = await api.get(`/salarycomponents/${id}`);
+        return response.data;
+    },
+    createSalaryComponent: async (component) => {
+        const response = await api.post('/salarycomponents', component);
+        return response.data;
+    },
+    updateSalaryComponent: async (id, component) => {
+        const response = await api.put(`/salarycomponents/${id}`, component);
+        return response.data;
+    },
+    deleteSalaryComponent: async (id) => {
+        const response = await api.delete(`/salarycomponents/${id}`);
+        return response.data;
+    }
+};
+
+export const salaryStructureService = {
+    getEmployeeStructure: async (employeeId) => {
+        const response = await api.get(`/salarystructure/employee/${employeeId}`);
+        return response.data;
+    },
+    getSalaryStructure: async (id) => {
+        const response = await api.get(`/salarystructure/${id}`);
+        return response.data;
+    },
+    createSalaryStructure: async (structure) => {
+        const response = await api.post('/salarystructure', structure);
+        return response.data;
+    },
+    updateSalaryStructure: async (id, structure) => {
+        const response = await api.put(`/salarystructure/${id}`, structure);
+        return response.data;
+    },
+    deleteSalaryStructure: async (id) => {
+        const response = await api.delete(`/salarystructure/${id}`);
+        return response.data;
+    },
+    getSalarySummary: async (employeeId) => {
+        const response = await api.get(`/salarystructure/summary/${employeeId}`);
+        return response.data;
+    }
+};
+
+export const payrollService = {
+    getPayrollRuns: async () => {
+        const response = await api.get('/payroll/runs');
+        return response.data;
+    },
+    getPayrollRunDetails: async (id) => {
+        const response = await api.get(`/payroll/run/${id}`);
+        return response.data;
+    },
+    processPayroll: async (month, year) => {
+        const response = await api.post('/payroll/process', { month, year });
+        return response.data;
+    },
+    finalizePayroll: async (id) => {
+        const response = await api.post(`/payroll/finalize/${id}`);
+        return response.data;
+    },
+    deletePayrollRun: async (id) => {
+        const response = await api.delete(`/payroll/run/${id}`);
+        return response.data;
+    },
+    getMyPayrolls: async () => {
+        const response = await api.get('/payroll/my-payrolls');
+        return response.data;
+    }
+};
+
 export {
     API_URL
 };

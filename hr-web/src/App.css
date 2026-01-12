@@ -969,4 +969,51 @@
 
 [data-bs-theme="dark"] .react-datepicker__navigation-icon::before {
     border-color: #dee2e6 !important;
+}/* -------------------------------------------
+   Global AG-Grid & Layout Utilities
+------------------------------------------- */
+
+.grid-fullscreen-container {
+    height: calc(100vh - 280px);
+    width: 100%;
+    min-height: 400px;
+}
+
+[data-bs-theme='dark'] .react-select__control {
+    background-color: #212529 !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+    color: #f8f9fa !important;
+}
+
+[data-bs-theme='dark'] .react-select__menu {
+    background-color: #212529 !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+    z-index: 9999;
+}
+
+[data-bs-theme='dark'] .react-select__option {
+    background-color: transparent !important;
+    color: #adb5bd !important;
+}
+
+[data-bs-theme='dark'] .react-select__option--is-focused {
+    background-color: rgba(13, 110, 253, 0.2) !important;
+    color: #fff !important;
+}
+
+[data-bs-theme='dark'] .react-select__option--is-selected {
+    background-color: #0d6efd !important;
+    color: #fff !important;
+}
+
+[data-bs-theme='dark'] .react-select__single-value {
+    color: #f8f9fa !important;
+}
+
+[data-bs-theme='dark'] .react-select__input-container {
+    color: #f8f9fa !important;
+}
+
+[data-bs-theme="dark"] .react-select__placeholder {
+    color: #6c757d !important;
 }
