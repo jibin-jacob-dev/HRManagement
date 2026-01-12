@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { useMenu } from '../context/MenuContext';
+import { authService } from '../services/api';
 
 /**
  * Hook to check permissions for a specific menu/feature.
@@ -10,6 +11,11 @@ export const usePermission = (menuName) => {
     const { menus } = useMenu();
 
     const permission = useMemo(() => {
+        // If user is Admin, they get full access to everything
+        if (authService.isAdmin()) {
+            return { canView: true, canEdit: true, permissionType: 'Full' };
+        }
+
         if (!menus || menus.length === 0) return { canView: false, canEdit: false, permissionType: null };
 
         // Flatten the menu tree to find the item

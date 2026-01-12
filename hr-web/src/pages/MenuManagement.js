@@ -1,25 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Button, Modal, Form, Row, Col, Badge } from 'react-bootstrap';
-import { 
-    DndContext, 
-    closestCenter, 
-    KeyboardSensor, 
-    PointerSensor, 
-    useSensor, 
-    useSensors,
-    DragOverlay,
-    defaultDropAnimationSideEffects
-} from '@dnd-kit/core';
-import { 
-    arrayMove, 
-    SortableContext, 
-    sortableKeyboardCoordinates, 
-    verticalListSortingStrategy,
-    useSortable 
-} from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
-import { restrictToVerticalAxis, createSnapModifier } from '@dnd-kit/modifiers';
-
 import { menuService } from '../services/api';
 import { useMenu } from '../context/MenuContext';
 import { useTheme } from '../context/ThemeContext';
@@ -29,32 +9,13 @@ import Select from 'react-select';
 
 import './MenuManagement.css';
 
-// --- Sortable Item Component ---
-const SortableMenuCard = ({ menu, level, onEdit, onDelete, isDragging }) => {
-    const {
-        attributes,
-        listeners,
-        setNodeRef,
-        transform,
-        transition,
-    } = useSortable({ id: menu.id });
-
-    const style = {
-        transform: CSS.Transform.toString(transform),
-        transition,
-    };
-
+const MenuCard = ({ menu, level, onEdit, onDelete, onMoveUp, onMoveDown, isFirst, isLast }) => {
     return (
         <div 
-            ref={setNodeRef} 
-            style={style} 
-            className={`menu-item-card ${level === 0 ? 'parent-item' : 'child-item'} ${isDragging ? 'dragging' : ''}`}
+            id={menu.id}
+            className={`menu-item-card ${level === 0 ? 'parent-item' : 'child-item'}`}
         >
-            <div className="drag-handle" {...attributes} {...listeners}>
-                <i className="fas fa-grip-vertical"></i>
-            </div>
-            
-            <div className="menu-icon-preview">
+            <div className="menu-icon-preview ms-2">
                 <i className={menu.icon || 'fas fa-link'}></i>
             </div>
 
@@ -68,6 +29,26 @@ const SortableMenuCard = ({ menu, level, onEdit, onDelete, isDragging }) => {
             </div>
 
             <div className="item-actions">
+                <div className="d-flex flex-column me-2">
+                    <Button 
+                        variant="link" 
+                        className="p-0 text-secondary lh-1" 
+                        onClick={(e) => { e.stopPropagation(); onMoveUp(menu); }}
+                        disabled={isFirst}
+                        style={{ fontSize: '0.8rem', opacity: isFirst ? 0.3 : 1 }}
+                    >
+                        <i className="fas fa-chevron-up"></i>
+                    </Button>
+                    <Button 
+                        variant="link" 
+                        className="p-0 text-secondary lh-1" 
+                        onClick={(e) => { e.stopPropagation(); onMoveDown(menu); }}
+                        disabled={isLast}
+                        style={{ fontSize: '0.8rem', opacity: isLast ? 0.3 : 1 }}
+                    >
+                        <i className="fas fa-chevron-down"></i>
+                    </Button>
+                </div>
                 <Button variant="outline-primary" className="btn-action" onClick={() => onEdit(menu)}>
                     <i className="fas fa-edit"></i>
                 </Button>
@@ -91,9 +72,13 @@ const MenuManagement = () => {
     const [showModal, setShowModal] = useState(false);
     const [editingMenu, setEditingMenu] = useState(null);
     const [hasChanges, setHasChanges] = useState(false);
-    const [activeId, setActiveId] = useState(null);
-    const [activeItem, setActiveItem] = useState(null);
-    const [containerWidth, setContainerWidth] = useState(0);
+    const [formData, setFormData] = useState({
+        label: '',
+        route: '',
+        icon: '',
+        orderIndex: 0,
+        parentId: null
+    });
     const [searchTerm, setSearchTerm] = useState('');
 
     const containerRef = React.useRef(null);
@@ -110,9 +95,6 @@ const MenuManagement = () => {
             );
             return parentMatch || childrenMatch;
         }).map(parent => {
-            // If the parent matched, keep all children. If only children matched, filter children.
-            // Actually, usually easier to just show the parent and any matching children or all children.
-            // Let's keep it simple: if parent or any child matches, show parent and its matching children.
             const parentMatch = parent.label.toLowerCase().includes(term) || parent.route?.toLowerCase().includes(term);
             if (parentMatch) return parent;
             
@@ -124,20 +106,6 @@ const MenuManagement = () => {
             };
         });
     }, [menus, searchTerm]);
-
-    const [formData, setFormData] = useState({
-        label: '',
-        route: '',
-        icon: '',
-        orderIndex: 0,
-        parentId: null
-    });
-
-    // Sensors for DND
-    const sensors = useSensors(
-        useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
-        useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
-    );
 
     useEffect(() => {
         fetchMenus();
@@ -172,130 +140,6 @@ const MenuManagement = () => {
         }
     };
 
-    // --- Drag Handlers ---
-    // --- Helper Functions ---
-    const findContainer = (id) => {
-        if (menus.some(p => p.id === id)) return 'root';
-        const parent = menus.find(p => p.children?.some(c => c.id === id));
-        return parent ? parent.id : 'root';
-    };
-
-    // --- Drag Handlers ---
-    const handleDragStart = (event) => {
-        const { active } = event;
-        setActiveId(active.id);
-        
-        // Measure container inner width for perfect alignment
-        if (containerRef.current) {
-            const style = window.getComputedStyle(containerRef.current);
-            const paddingX = parseFloat(style.paddingLeft) + parseFloat(style.paddingRight);
-            setContainerWidth(containerRef.current.clientWidth - paddingX);
-        }
-
-        // Find the active item
-        let found = null;
-        flatMenus.forEach(m => {
-            if (m.id === active.id) found = m;
-        });
-        setActiveItem(found);
-    };
-
-    const handleDragOver = (event) => {
-        const { active, over } = event;
-        if (!over || active.id === over.id) return;
-
-        const activeContainer = findContainer(active.id);
-        const overContainer = findContainer(over.id);
-
-        // Smart Drop Logic: If we drag a child over a parent item, treat that parent as the container
-        const overIsAParent = menus.some(p => p.id === over.id);
-        const targetContainer = overIsAParent ? over.id : overContainer;
-
-        if (activeContainer !== targetContainer) {
-            setMenus((prev) => {
-                let itemToMove;
-                
-                // 1. Find and Extract item
-                if (activeContainer === 'root') {
-                    itemToMove = prev.find(p => p.id === active.id);
-                    // Don't allow nesting a parent that has its own children
-                    if (itemToMove?.children?.length > 0 && targetContainer !== 'root') return prev;
-                } else {
-                    const parent = prev.find(p => p.id === activeContainer);
-                    itemToMove = parent?.children.find(c => c.id === active.id);
-                }
-
-                if (!itemToMove) return prev;
-
-                // 2. Remove from old container
-                let nextMenus = prev.map(container => {
-                    if (container.id === activeContainer) {
-                        return { ...container, children: container.children.filter(c => c.id !== active.id) };
-                    }
-                    return container;
-                });
-                
-                if (activeContainer === 'root') {
-                    nextMenus = nextMenus.filter(p => p.id !== active.id);
-                }
-
-                // 3. Add to new container
-                if (targetContainer === 'root') {
-                    const overIndex = nextMenus.findIndex(p => p.id === over.id);
-                    const newItem = { ...itemToMove, parentId: null, children: itemToMove.children || [] };
-                    nextMenus.splice(overIndex >= 0 ? overIndex : nextMenus.length, 0, newItem);
-                } else {
-                    nextMenus = nextMenus.map(container => {
-                        if (container.id === targetContainer) {
-                            const newChildren = [...container.children];
-                            // If dropping on the parent card itself, put at the end
-                            const overIndex = overIsAParent ? newChildren.length : newChildren.findIndex(c => c.id === over.id);
-                            const newItem = { ...itemToMove, parentId: targetContainer, children: [] };
-                            newChildren.splice(overIndex >= 0 ? overIndex : newChildren.length, 0, newItem);
-                            return { ...container, children: newChildren };
-                        }
-                        return container;
-                    });
-                }
-
-                return nextMenus;
-            });
-            setHasChanges(true);
-        }
-    };
-
-    const handleDragEnd = (event) => {
-        const { active, over } = event;
-        setActiveId(null);
-        setActiveItem(null);
-
-        if (!over) return;
-
-        if (active.id !== over.id) {
-            const activeContainer = findContainer(active.id);
-            const overContainer = findContainer(over.id);
-
-            if (activeContainer === overContainer) {
-                // Reorder within same container
-                if (activeContainer === 'root') {
-                    const oldIndex = menus.findIndex(p => p.id === active.id);
-                    const newIndex = menus.findIndex(p => p.id === over.id);
-                    setMenus(arrayMove(menus, oldIndex, newIndex));
-                } else {
-                    const newMenus = menus.map(p => {
-                        if (p.id === activeContainer) {
-                            const oldIndex = p.children.findIndex(c => c.id === active.id);
-                            const newIndex = p.children.findIndex(c => c.id === over.id);
-                            return { ...p, children: arrayMove(p.children, oldIndex, newIndex) };
-                        }
-                        return p;
-                    });
-                    setMenus(newMenus);
-                }
-                setHasChanges(true);
-            }
-        }
-    };
 
     const saveOrder = async () => {
         try {
@@ -314,6 +158,63 @@ const MenuManagement = () => {
         } catch (error) {
             alertService.showToast('Failed to save structure', 'error');
         }
+    };
+
+    // --- Arrow Key Movement Handlers ---
+    const handleMoveUp = (menu) => {
+        setMenus(prev => {
+            if (!menu.parentId) {
+                const index = prev.findIndex(m => m.id === menu.id);
+                if (index > 0) {
+                    const newMenus = [...prev];
+                    [newMenus[index], newMenus[index - 1]] = [newMenus[index - 1], newMenus[index]];
+                    setHasChanges(true);
+                    return newMenus;
+                }
+            } else {
+                return prev.map(p => {
+                    if (p.id === menu.parentId) {
+                        const index = p.children.findIndex(c => c.id === menu.id);
+                        if (index > 0) {
+                            const newChildren = [...p.children];
+                            [newChildren[index], newChildren[index - 1]] = [newChildren[index - 1], newChildren[index]];
+                            setHasChanges(true); // Side effect in map but safe here as we force render
+                            return { ...p, children: newChildren };
+                        }
+                    }
+                    return p;
+                });
+            }
+            return prev;
+        });
+    };
+
+    const handleMoveDown = (menu) => {
+        setMenus(prev => {
+            if (!menu.parentId) {
+                const index = prev.findIndex(m => m.id === menu.id);
+                if (index < prev.length - 1) {
+                    const newMenus = [...prev];
+                    [newMenus[index], newMenus[index + 1]] = [newMenus[index + 1], newMenus[index]];
+                    setHasChanges(true);
+                    return newMenus;
+                }
+            } else {
+                return prev.map(p => {
+                    if (p.id === menu.parentId) {
+                        const index = p.children.findIndex(c => c.id === menu.id);
+                        if (index < p.children.length - 1) {
+                            const newChildren = [...p.children];
+                            [newChildren[index], newChildren[index + 1]] = [newChildren[index + 1], newChildren[index]];
+                            setHasChanges(true);
+                            return { ...p, children: newChildren };
+                        }
+                    }
+                    return p;
+                });
+            }
+            return prev;
+        });
     };
 
     // --- CRUD Handlers ---
@@ -429,83 +330,46 @@ const MenuManagement = () => {
                 {loading ? (
                     <div className="empty-state"><i className="fas fa-spinner fa-spin fa-2x"></i></div>
                 ) : (
-                    <DndContext 
-                        sensors={sensors}
-                        collisionDetection={closestCenter}
-                        onDragStart={handleDragStart}
-                        onDragOver={handleDragOver}
-                        onDragEnd={handleDragEnd}
-                        modifiers={[restrictToVerticalAxis]}
-                    >
-                        <SortableContext 
-                            id="root"
-                            items={filteredMenus.map(p => p.id)} 
-                            strategy={verticalListSortingStrategy}
-                            disabled={!!searchTerm}
-                        >
-                            {filteredMenus.length === 0 ? (
-                                <div className="empty-state">
-                                    {searchTerm ? `No results found for "${searchTerm}"` : 'No menus found. Click "Add Menu" to begin.'}
+                    <>
+                        {filteredMenus.length === 0 ? (
+                            <div className="empty-state">
+                                {searchTerm ? `No results found for "${searchTerm}"` : 'No menus found. Click "Add Menu" to begin.'}
+                            </div>
+                        ) : (
+                            filteredMenus.map((parent, pIndex) => (
+                                <div key={parent.id}>
+                                    <MenuCard 
+                                        menu={parent} 
+                                        level={0} 
+                                        onEdit={handleOpenModal} 
+                                        onDelete={handleDelete}
+                                        onMoveUp={handleMoveUp}
+                                        onMoveDown={handleMoveDown}
+                                        isFirst={pIndex === 0}
+                                        isLast={pIndex === filteredMenus.length - 1}
+                                    />
+                                    
+                                    {parent.children.length > 0 && (
+                                        <div className="nested-container">
+                                            {parent.children.map((child, cIndex) => (
+                                                <MenuCard 
+                                                    key={child.id}
+                                                    menu={child} 
+                                                    level={1} 
+                                                    onEdit={handleOpenModal} 
+                                                    onDelete={handleDelete}
+                                                    onMoveUp={handleMoveUp}
+                                                    onMoveDown={handleMoveDown}
+                                                    isFirst={cIndex === 0}
+                                                    isLast={cIndex === parent.children.length - 1}
+                                                />
+                                            ))}
+                                        </div>
+                                    )}
                                 </div>
-                            ) : (
-                                filteredMenus.map(parent => (
-                                    <div key={parent.id}>
-                                        <SortableMenuCard 
-                                            menu={parent} 
-                                            level={0} 
-                                            onEdit={handleOpenModal} 
-                                            onDelete={handleDelete}
-                                            isDragging={activeId === parent.id}
-                                        />
-                                        
-                                        {parent.children.length > 0 && (
-                                            <div className="nested-container">
-                                                <SortableContext 
-                                                    id={parent.id}
-                                                    items={parent.children.map(c => c.id)} 
-                                                    strategy={verticalListSortingStrategy}
-                                                    disabled={!!searchTerm}
-                                                >
-                                                    {parent.children.map(child => (
-                                                        <SortableMenuCard 
-                                                            key={child.id}
-                                                            menu={child} 
-                                                            level={1} 
-                                                            onEdit={handleOpenModal} 
-                                                            onDelete={handleDelete}
-                                                            isDragging={activeId === child.id}
-                                                        />
-                                                    ))}
-                                                </SortableContext>
-                                            </div>
-                                        )}
-                                    </div>
-                                ))
-                            )}
-                        </SortableContext>
-
-                        <DragOverlay 
-                            portalContainer={containerRef.current}
-                            dropAnimation={{
-                                sideEffects: defaultDropAnimationSideEffects({
-                                    styles: { active: { opacity: '0.5' } },
-                                })
-                            }}
-                        >
-                            {activeId && activeItem ? (
-                                <div 
-                                    className={`menu-item-card drag-overlay-item ${activeItem.parentId ? 'child-item' : 'parent-item'}`}
-                                    style={{ 
-                                        width: `${containerWidth}px`
-                                    }}
-                                >
-                                    <div className="drag-handle"><i className="fas fa-grip-vertical"></i></div>
-                                    <div className="menu-icon-preview"><i className={activeItem.icon || 'fas fa-link'}></i></div>
-                                    <div className="flex-grow-1"><span className="fw-bold">{activeItem.label}</span></div>
-                                </div>
-                            ) : null}
-                        </DragOverlay>
-                    </DndContext>
+                            ))
+                        )}
+                    </>
                 )}
             </div>
 

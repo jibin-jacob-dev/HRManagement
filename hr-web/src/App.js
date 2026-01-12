@@ -26,17 +26,14 @@ import LeaveTypes from './pages/LeaveTypes';
 import LeaveBalance from './pages/LeaveBalance';
 import Timesheets from './pages/Timesheets';
 import TimesheetApprovals from './pages/TimesheetApprovals';
-
-// Simple component to protect routes
-const ProtectedRoute = ({ children }) => {
-    const token = localStorage.getItem('token');
-    return token ? children : <Navigate to="/login" />;
-};
+import GlobalToast from './components/common/GlobalToast';
+import ProtectedRoute from './components/auth/ProtectedRoute';
 
 function App() {
     return (
         <ThemeProvider>
             <Router>
+                <GlobalToast />
                 <Routes>
                     <Route path="/login" element={<Login />} />
                     <Route path="/register" element={<Register />} />

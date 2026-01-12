@@ -248,15 +248,13 @@
     z-index: 9999 !important;
     cursor: grabbing;
     opacity: 0.95;
-    background: #fff;
-    margin: 0 !important;
     box-sizing: border-box !important;
     pointer-events: none;
-    position: absolute !important; /* Work with the relative structure-container */
-    left: 0;
+    margin: 0 !important;
+    transition: none !important; /* Extremely important to prevent drifting */
 }
 
+/* Let the card's native background (gradients etc) show through */
 .dark-mode .drag-overlay-item {
-    background: #1a1d20;
     color: #fff;
 }

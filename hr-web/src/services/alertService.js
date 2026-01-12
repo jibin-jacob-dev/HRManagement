@@ -1,6 +1,6 @@
 import Swal from 'sweetalert2';
 
-// Toast Configuration
+// Toast Configuration (Deprecated for Toasts, keeping for legacy just in case, but unused for showToast now)
 const Toast = Swal.mixin({
     toast: true,
     position: 'top-end',
@@ -14,12 +14,12 @@ const Toast = Swal.mixin({
 });
 
 const alertService = {
-    // Toast Notifications
-    showToast: (title, icon = 'success') => {
-        Toast.fire({
-            icon: icon,
-            title: title
+    // Toast Notifications - Now uses Bootstrap GlobalToast via Event Bus
+    showToast: (title, icon = 'success', text = '') => {
+        const event = new CustomEvent('show-toast', { 
+            detail: { title, icon, text } 
         });
+        window.dispatchEvent(event);
     },
 
     // Standard Alerts
