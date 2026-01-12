@@ -800,7 +800,7 @@ const Profile = () => {
                                                                 disabled={isReadOnly}
                                                                 portalId="root"
                                                             />
-                                                            <i className="fas fa-calendar-alt"></i>
+           
                                                         </div>
                                                     </Form.Group>
                                                 </Col>
@@ -1011,7 +1011,7 @@ const Profile = () => {
                                                                 disabled={isReadOnly || !isAdmin}
                                                                 portalId="root"
                                                             />
-                                                            <i className="fas fa-calendar-alt"></i>
+           
                                                         </div>
                                                     </Form.Group>
                                                 </Col>
@@ -1323,7 +1323,7 @@ const Profile = () => {
                                                     dropdownMode="select"
                                                     portalId="root"
                                                 />
-                                                <i className="fas fa-calendar-alt"></i>
+
                                             </div>
                                         </Form.Group>
                                     </Col>
@@ -1343,7 +1343,7 @@ const Profile = () => {
                                                     disabled={values.isCurrent}
                                                     portalId="root"
                                                 />
-                                                <i className="fas fa-calendar-alt"></i>
+
                                             </div>
                                             <Form.Check 
                                                 type="checkbox"
@@ -1457,7 +1457,7 @@ const Profile = () => {
                                                     dropdownMode="select"
                                                     portalId="root"
                                                 />
-                                                <i className="fas fa-calendar-alt"></i>
+
                                             </div>
                                         </Form.Group>
                                     </Col>
@@ -1476,7 +1476,7 @@ const Profile = () => {
                                                     placeholderText="Select Year"
                                                     portalId="root"
                                                 />
-                                                <i className="fas fa-calendar-alt"></i>
+
                                             </div>
                                         </Form.Group>
                                     </Col>
@@ -1566,7 +1566,7 @@ const Profile = () => {
                                                     dropdownMode="select"
                                                     portalId="root"
                                                 />
-                                                <i className="fas fa-calendar-alt"></i>
+
                                             </div>
                                         </Form.Group>
                                     </Col>
@@ -1585,7 +1585,7 @@ const Profile = () => {
                                                     placeholderText="Does not expire"
                                                     portalId="root"
                                                 />
-                                                <i className="fas fa-calendar-alt"></i>
+
                                             </div>
                                         </Form.Group>
                                     </Col>
