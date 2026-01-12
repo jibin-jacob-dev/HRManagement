@@ -18,7 +18,7 @@ import {
     useSortable 
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { restrictToVerticalAxis } from '@dnd-kit/modifiers';
+import { restrictToVerticalAxis, createSnapModifier } from '@dnd-kit/modifiers';
 
 import { menuService } from '../services/api';
 import { useMenu } from '../context/MenuContext';
@@ -93,6 +93,37 @@ const MenuManagement = () => {
     const [hasChanges, setHasChanges] = useState(false);
     const [activeId, setActiveId] = useState(null);
     const [activeItem, setActiveItem] = useState(null);
+    const [containerWidth, setContainerWidth] = useState(0);
+    const [searchTerm, setSearchTerm] = useState('');
+
+    const containerRef = React.useRef(null);
+
+    // Derived State
+    const filteredMenus = React.useMemo(() => {
+        if (!searchTerm) return menus;
+        
+        const term = searchTerm.toLowerCase();
+        return menus.filter(parent => {
+            const parentMatch = parent.label.toLowerCase().includes(term) || parent.route?.toLowerCase().includes(term);
+            const childrenMatch = parent.children?.some(child => 
+                child.label.toLowerCase().includes(term) || child.route?.toLowerCase().includes(term)
+            );
+            return parentMatch || childrenMatch;
+        }).map(parent => {
+            // If the parent matched, keep all children. If only children matched, filter children.
+            // Actually, usually easier to just show the parent and any matching children or all children.
+            // Let's keep it simple: if parent or any child matches, show parent and its matching children.
+            const parentMatch = parent.label.toLowerCase().includes(term) || parent.route?.toLowerCase().includes(term);
+            if (parentMatch) return parent;
+            
+            return {
+                ...parent,
+                children: parent.children.filter(child => 
+                    child.label.toLowerCase().includes(term) || child.route?.toLowerCase().includes(term)
+                )
+            };
+        });
+    }, [menus, searchTerm]);
 
     const [formData, setFormData] = useState({
         label: '',
@@ -142,19 +173,95 @@ const MenuManagement = () => {
     };
 
     // --- Drag Handlers ---
+    // --- Helper Functions ---
+    const findContainer = (id) => {
+        if (menus.some(p => p.id === id)) return 'root';
+        const parent = menus.find(p => p.children?.some(c => c.id === id));
+        return parent ? parent.id : 'root';
+    };
+
+    // --- Drag Handlers ---
     const handleDragStart = (event) => {
         const { active } = event;
         setActiveId(active.id);
         
-        // Find the active item in our structure
+        // Measure container inner width for perfect alignment
+        if (containerRef.current) {
+            const style = window.getComputedStyle(containerRef.current);
+            const paddingX = parseFloat(style.paddingLeft) + parseFloat(style.paddingRight);
+            setContainerWidth(containerRef.current.clientWidth - paddingX);
+        }
+
+        // Find the active item
         let found = null;
-        menus.forEach(p => {
-            if (p.id === active.id) found = p;
-            p.children?.forEach(c => {
-                if (c.id === active.id) found = c;
-            });
+        flatMenus.forEach(m => {
+            if (m.id === active.id) found = m;
         });
         setActiveItem(found);
+    };
+
+    const handleDragOver = (event) => {
+        const { active, over } = event;
+        if (!over || active.id === over.id) return;
+
+        const activeContainer = findContainer(active.id);
+        const overContainer = findContainer(over.id);
+
+        // Smart Drop Logic: If we drag a child over a parent item, treat that parent as the container
+        const overIsAParent = menus.some(p => p.id === over.id);
+        const targetContainer = overIsAParent ? over.id : overContainer;
+
+        if (activeContainer !== targetContainer) {
+            setMenus((prev) => {
+                let itemToMove;
+                
+                // 1. Find and Extract item
+                if (activeContainer === 'root') {
+                    itemToMove = prev.find(p => p.id === active.id);
+                    // Don't allow nesting a parent that has its own children
+                    if (itemToMove?.children?.length > 0 && targetContainer !== 'root') return prev;
+                } else {
+                    const parent = prev.find(p => p.id === activeContainer);
+                    itemToMove = parent?.children.find(c => c.id === active.id);
+                }
+
+                if (!itemToMove) return prev;
+
+                // 2. Remove from old container
+                let nextMenus = prev.map(container => {
+                    if (container.id === activeContainer) {
+                        return { ...container, children: container.children.filter(c => c.id !== active.id) };
+                    }
+                    return container;
+                });
+                
+                if (activeContainer === 'root') {
+                    nextMenus = nextMenus.filter(p => p.id !== active.id);
+                }
+
+                // 3. Add to new container
+                if (targetContainer === 'root') {
+                    const overIndex = nextMenus.findIndex(p => p.id === over.id);
+                    const newItem = { ...itemToMove, parentId: null, children: itemToMove.children || [] };
+                    nextMenus.splice(overIndex >= 0 ? overIndex : nextMenus.length, 0, newItem);
+                } else {
+                    nextMenus = nextMenus.map(container => {
+                        if (container.id === targetContainer) {
+                            const newChildren = [...container.children];
+                            // If dropping on the parent card itself, put at the end
+                            const overIndex = overIsAParent ? newChildren.length : newChildren.findIndex(c => c.id === over.id);
+                            const newItem = { ...itemToMove, parentId: targetContainer, children: [] };
+                            newChildren.splice(overIndex >= 0 ? overIndex : newChildren.length, 0, newItem);
+                            return { ...container, children: newChildren };
+                        }
+                        return container;
+                    });
+                }
+
+                return nextMenus;
+            });
+            setHasChanges(true);
+        }
     };
 
     const handleDragEnd = (event) => {
@@ -162,40 +269,29 @@ const MenuManagement = () => {
         setActiveId(null);
         setActiveItem(null);
 
-        if (!over || active.id === over.id) return;
+        if (!over) return;
 
-        // Reorder Logic
-        const isParentDrag = menus.some(p => p.id === active.id);
-        
-        if (isParentDrag) {
-            const oldIndex = menus.findIndex(p => p.id === active.id);
-            const newIndex = menus.findIndex(p => p.id === over.id);
-            
-            if (newIndex !== -1) {
-                const newMenus = arrayMove(menus, oldIndex, newIndex);
-                setMenus(newMenus);
-                setHasChanges(true);
-            }
-        } else {
-            // Child Drag within same parent or across parents
-            // For simplicity in this "WOW" demo, we'll support movement within the same parent first
-            // Cross-parent dragging is more complex but we can implement it if needed
-            let updated = false;
-            const newMenus = menus.map(p => {
-                const childIndex = p.children.findIndex(c => c.id === active.id);
-                if (childIndex !== -1) {
-                    const overChildIndex = p.children.findIndex(c => c.id === over.id);
-                    if (overChildIndex !== -1) {
-                        const newChildren = arrayMove(p.children, childIndex, overChildIndex);
-                        updated = true;
-                        return { ...p, children: newChildren };
-                    }
+        if (active.id !== over.id) {
+            const activeContainer = findContainer(active.id);
+            const overContainer = findContainer(over.id);
+
+            if (activeContainer === overContainer) {
+                // Reorder within same container
+                if (activeContainer === 'root') {
+                    const oldIndex = menus.findIndex(p => p.id === active.id);
+                    const newIndex = menus.findIndex(p => p.id === over.id);
+                    setMenus(arrayMove(menus, oldIndex, newIndex));
+                } else {
+                    const newMenus = menus.map(p => {
+                        if (p.id === activeContainer) {
+                            const oldIndex = p.children.findIndex(c => c.id === active.id);
+                            const newIndex = p.children.findIndex(c => c.id === over.id);
+                            return { ...p, children: arrayMove(p.children, oldIndex, newIndex) };
+                        }
+                        return p;
+                    });
+                    setMenus(newMenus);
                 }
-                return p;
-            });
-
-            if (updated) {
-                setMenus(newMenus);
                 setHasChanges(true);
             }
         }
@@ -302,22 +398,34 @@ const MenuManagement = () => {
         <Container fluid className={`menu-management-wrapper page-animate ${isDarkMode ? 'dark-mode' : ''}`}>
             <div className="page-header d-flex justify-content-between align-items-center">
                 <div>
-                    <h2 className="fw-bold mb-1">Menu Designer</h2>
+                    <h2 className="mb-0">Menu Designer</h2>
                     <p className="text-muted small mb-0">Drag and drop to reorder the system navigation</p>
                 </div>
-                <div className="d-flex gap-2">
-                    {hasChanges && (
-                        <Button variant="success" className="shadow-sm" onClick={saveOrder} title="Save Structure">
-                            <i className="fas fa-check"></i>
+                <div className="d-flex gap-3 align-items-center">
+                    <div className="search-box">
+                        <i className="fas fa-search search-icon"></i>
+                        <Form.Control 
+                            type="text" 
+                            placeholder="Search menus..." 
+                            className={`search-input ${isDarkMode ? 'bg-dark text-white border-secondary' : ''}`}
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                        />
+                    </div>
+                    <div className="d-flex gap-2">
+                        {hasChanges && (
+                            <Button variant="success" className="shadow-sm" onClick={saveOrder} title="Save Structure">
+                                <i className="fas fa-check"></i>
+                            </Button>
+                        )}
+                        <Button variant="primary" className="px-4 shadow-sm" onClick={() => handleOpenModal()}>
+                            <i className="fas fa-plus me-2"></i> Add Menu
                         </Button>
-                    )}
-                    <Button variant="primary" className="px-4 shadow-sm" onClick={() => handleOpenModal()}>
-                        <i className="fas fa-plus me-2"></i> Add Menu
-                    </Button>
+                    </div>
                 </div>
             </div>
 
-            <div className="structure-container">
+            <div className="structure-container" ref={containerRef}>
                 {loading ? (
                     <div className="empty-state"><i className="fas fa-spinner fa-spin fa-2x"></i></div>
                 ) : (
@@ -325,17 +433,22 @@ const MenuManagement = () => {
                         sensors={sensors}
                         collisionDetection={closestCenter}
                         onDragStart={handleDragStart}
+                        onDragOver={handleDragOver}
                         onDragEnd={handleDragEnd}
                         modifiers={[restrictToVerticalAxis]}
                     >
                         <SortableContext 
-                            items={menus.map(p => p.id)} 
+                            id="root"
+                            items={filteredMenus.map(p => p.id)} 
                             strategy={verticalListSortingStrategy}
+                            disabled={!!searchTerm}
                         >
-                            {menus.length === 0 ? (
-                                <div className="empty-state">No menus found. Click "Add Menu" to begin.</div>
+                            {filteredMenus.length === 0 ? (
+                                <div className="empty-state">
+                                    {searchTerm ? `No results found for "${searchTerm}"` : 'No menus found. Click "Add Menu" to begin.'}
+                                </div>
                             ) : (
-                                menus.map(parent => (
+                                filteredMenus.map(parent => (
                                     <div key={parent.id}>
                                         <SortableMenuCard 
                                             menu={parent} 
@@ -345,35 +458,47 @@ const MenuManagement = () => {
                                             isDragging={activeId === parent.id}
                                         />
                                         
-                                        <div className="nested-container">
-                                            <SortableContext 
-                                                items={parent.children.map(c => c.id)} 
-                                                strategy={verticalListSortingStrategy}
-                                            >
-                                                {parent.children.map(child => (
-                                                    <SortableMenuCard 
-                                                        key={child.id}
-                                                        menu={child} 
-                                                        level={1} 
-                                                        onEdit={handleOpenModal} 
-                                                        onDelete={handleDelete}
-                                                        isDragging={activeId === child.id}
-                                                    />
-                                                ))}
-                                            </SortableContext>
-                                        </div>
+                                        {parent.children.length > 0 && (
+                                            <div className="nested-container">
+                                                <SortableContext 
+                                                    id={parent.id}
+                                                    items={parent.children.map(c => c.id)} 
+                                                    strategy={verticalListSortingStrategy}
+                                                    disabled={!!searchTerm}
+                                                >
+                                                    {parent.children.map(child => (
+                                                        <SortableMenuCard 
+                                                            key={child.id}
+                                                            menu={child} 
+                                                            level={1} 
+                                                            onEdit={handleOpenModal} 
+                                                            onDelete={handleDelete}
+                                                            isDragging={activeId === child.id}
+                                                        />
+                                                    ))}
+                                                </SortableContext>
+                                            </div>
+                                        )}
                                     </div>
                                 ))
                             )}
                         </SortableContext>
 
-                        <DragOverlay dropAnimation={{
-                            sideEffects: defaultDropAnimationSideEffects({
-                                styles: { active: { opacity: '0.5' } },
-                            })
-                        }}>
+                        <DragOverlay 
+                            portalContainer={containerRef.current}
+                            dropAnimation={{
+                                sideEffects: defaultDropAnimationSideEffects({
+                                    styles: { active: { opacity: '0.5' } },
+                                })
+                            }}
+                        >
                             {activeId && activeItem ? (
-                                <div className={`menu-item-card drag-overlay-item ${activeItem.parentId ? 'child-item' : 'parent-item'}`}>
+                                <div 
+                                    className={`menu-item-card drag-overlay-item ${activeItem.parentId ? 'child-item' : 'parent-item'}`}
+                                    style={{ 
+                                        width: `${containerWidth}px`
+                                    }}
+                                >
                                     <div className="drag-handle"><i className="fas fa-grip-vertical"></i></div>
                                     <div className="menu-icon-preview"><i className={activeItem.icon || 'fas fa-link'}></i></div>
                                     <div className="flex-grow-1"><span className="fw-bold">{activeItem.label}</span></div>

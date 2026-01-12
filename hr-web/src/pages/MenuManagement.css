@@ -13,6 +13,7 @@
     padding: 1.5rem;
     min-height: 500px;
     box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
+    position: relative; /* Added to anchor the local portal */
 }
 
 .dark-mode .structure-container {
@@ -30,10 +31,12 @@
     align-items: center;
     gap: 1rem;
     border: 1px solid #eee;
-    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: transform 150ms ease; /* Only transition transform when not being dragged */
     cursor: default;
     position: relative;
     box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+    box-sizing: border-box;
+    width: 100%;
 }
 
 .dark-mode .menu-item-card {
@@ -43,7 +46,6 @@
 }
 
 .menu-item-card:hover {
-    transform: translateX(5px);
     box-shadow: 0 5px 15px rgba(0,0,0,0.1);
     border-color: var(--bs-primary);
 }
@@ -89,6 +91,19 @@
     border-left: 2px dashed rgba(0,0,0,0.1);
     margin-top: -0.1rem;
     margin-bottom: 0.75rem;
+    min-height: 10px; /* Ensure there is a drop zone if empty */
+    transition: all 0.2s;
+}
+
+.nested-container:empty {
+    min-height: 20px;
+    background: rgba(0, 0, 0, 0.02);
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+}
+
+.dark-mode .nested-container:empty {
+    background: rgba(255, 255, 255, 0.02);
 }
 
 .dark-mode .nested-container {
@@ -163,6 +178,42 @@
     margin-top: 0; /* Clear default browser margin */
 }
 
+/* Search Box Styles */
+.search-box {
+    position: relative;
+    width: 280px;
+}
+
+.search-icon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #6c757d;
+    z-index: 10;
+    font-size: 0.9rem;
+}
+
+.search-input {
+    padding-left: 35px !important;
+    height: 38px;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    border: 1px solid #dee2e6;
+    transition: all 0.2s;
+}
+
+.search-input:focus {
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.1);
+    border-color: var(--bs-primary);
+}
+
+.dark-mode .search-input {
+    background: #2b3035 !important;
+    border-color: #495057;
+    color: #fff;
+}
+
 .page-header .btn {
     padding: 0.5rem 1.25rem;
     font-size: 0.85rem;
@@ -192,8 +243,20 @@
 
 /* Overlay Styling for Dragging */
 .drag-overlay-item {
-    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15) !important;
-    transform: scale(1.02) !important;
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3) !important;
     border: 1px solid var(--bs-primary) !important;
-    z-index: 9999;
+    z-index: 9999 !important;
+    cursor: grabbing;
+    opacity: 0.95;
+    background: #fff;
+    margin: 0 !important;
+    box-sizing: border-box !important;
+    pointer-events: none;
+    position: absolute !important; /* Work with the relative structure-container */
+    left: 0;
+}
+
+.dark-mode .drag-overlay-item {
+    background: #1a1d20;
+    color: #fff;
 }
