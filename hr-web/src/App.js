@@ -30,6 +30,7 @@ import SalaryComponents from './pages/SalaryComponents';
 import SalaryStructure from './pages/SalaryStructure';
 import PayrollProcessing from './pages/PayrollProcessing';
 import MyPayslips from './pages/MyPayslips';
+import Settings from './pages/Settings';
 import GlobalToast from './components/common/GlobalToast';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 
@@ -75,6 +76,7 @@ function App() {
                                              <Route path="/my-payslips" element={<MyPayslips />} />
                                             <Route path="/profile" element={<Profile />} />
                                             <Route path="/profile/:userId" element={<Profile />} />
+                                            <Route path="/settings" element={<Settings />} />
                                             <Route path="/" element={<Navigate to="/dashboard" />} />
                                         </Routes>
                                     </Layout>

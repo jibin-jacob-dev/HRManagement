@@ -4,14 +4,22 @@ import { authService } from '../../services/api';
 import alertService from '../../services/alertService';
 
 // Default configuration (can be moved to a settings context later)
-const SESSION_TIMEOUT_MS = 15 * 60 * 1000; // 15 Minutes
+// Default configuration
+const DEFAULT_TIMEOUT_MINS = 15;
 const WARNING_THRESHOLD_MS = 2 * 60 * 1000; // 2 Minutes warning
 const CHECK_INTERVAL_MS = 1000; // Check every second
 
 const SessionMonitor = () => {
+    const getSessionTimeoutMs = () => {
+        const stored = localStorage.getItem('sessionTimeout');
+        const mins = stored ? parseInt(stored) : DEFAULT_TIMEOUT_MINS;
+        return mins * 60 * 1000;
+    };
+
     const [showModal, setShowModal] = useState(false);
     const [timeLeft, setTimeLeft] = useState(WARNING_THRESHOLD_MS);
     const [isIdle, setIsIdle] = useState(false);
+    const [timeoutDuration, setTimeoutDuration] = useState(getSessionTimeoutMs());
     
     const lastActivityRef = useRef(Date.now());
     const timerRef = useRef(null);
@@ -50,12 +58,32 @@ const SessionMonitor = () => {
         };
     }, [resetTimer]);
 
+
+    
+    // Listen for storage changes (to update timeout dynamically if changed in Profile)
+    useEffect(() => {
+        const handleStorageChange = () => {
+            setTimeoutDuration(getSessionTimeoutMs());
+            // Reset activity on config change to prevent immediate logout if duration was shortened below current idle time
+            // Or better, just keep current idle time but new limit applies
+        };
+
+        window.addEventListener('storage', handleStorageChange);
+        // Custom event for same-tab updates
+        window.addEventListener('session-config-changed', handleStorageChange); 
+        
+        return () => {
+            window.removeEventListener('storage', handleStorageChange);
+            window.removeEventListener('session-config-changed', handleStorageChange);
+        };
+    }, []);
+
     // Monitoring Loop
     useEffect(() => {
         timerRef.current = setInterval(() => {
             const now = Date.now();
             const timeSinceLastActivity = now - lastActivityRef.current;
-            const timeRemaining = SESSION_TIMEOUT_MS - timeSinceLastActivity;
+            const timeRemaining = timeoutDuration - timeSinceLastActivity;
 
             if (timeRemaining <= 0) {
                 // Time is up
@@ -80,7 +108,7 @@ const SessionMonitor = () => {
         return () => {
             if (timerRef.current) clearInterval(timerRef.current);
         };
-    }, [showModal, logoutUser]);
+    }, [showModal, logoutUser, timeoutDuration]);
 
     const handleStayConnected = async () => {
         try {

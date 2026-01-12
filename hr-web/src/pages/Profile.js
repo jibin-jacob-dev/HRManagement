@@ -1240,6 +1240,7 @@ const Profile = () => {
                                     )}
                                 </div>
                             )}
+                            
                         </Card.Body>
                     </Card>
                 </Col>
