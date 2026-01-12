@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
@@ -88,7 +89,9 @@ public class AuthController : ControllerBase
         if (model.Email == "jacobjibin1997@gmail.com" && !roles.Contains("Admin"))
         {
             if (!await _roleManager.RoleExistsAsync("Admin"))
+            {
                 await _roleManager.CreateAsync(new ApplicationRole { Name = "Admin", Description = "Administrator" });
+            }
             
             await _userManager.AddToRoleAsync(user, "Admin");
             roles = await _userManager.GetRolesAsync(user); // efficient enough for dev
@@ -118,6 +121,33 @@ public class AuthController : ControllerBase
     {
         await _signInManager.SignOutAsync();
         return Ok(new { message = "Logged out successfully" });
+    }
+
+    [HttpPost("refresh-token")]
+    [Authorize]
+    public async Task<IActionResult> RefreshToken()
+    {
+        var userEmail = User.FindFirst(ClaimTypes.Email)?.Value;
+        
+        if (string.IsNullOrEmpty(userEmail))
+        {
+            var name = User.Identity?.Name;
+            // Fallback if Name is email
+            if (!string.IsNullOrEmpty(name) && name.Contains("@"))
+            {
+                userEmail = name;
+            }
+        }
+
+        if (string.IsNullOrEmpty(userEmail))
+            return Unauthorized();
+
+        var user = await _userManager.FindByEmailAsync(userEmail);
+        if (user == null || !user.IsActive)
+            return Unauthorized(new { message = "Session invalid" });
+
+        var token = await GenerateJwtToken(user);
+        return Ok(new { token });
     }
 
     private async Task<string> GenerateJwtToken(ApplicationUser user)

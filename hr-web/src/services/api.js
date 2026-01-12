@@ -20,6 +20,25 @@ api.interceptors.request.use((config) => {
     return Promise.reject(error);
 });
 
+// Add a response interceptor to handle 401 Unauthorized errors
+api.interceptors.response.use(
+    (response) => {
+        return response;
+    },
+    (error) => {
+        if (error.response && error.response.status === 401) {
+            // If 401 Unauthorized, clear storage and redirect to login
+            // Unless we are already at login (to avoid potential loops, though usually safe)
+            if (!window.location.pathname.includes('/login')) {
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');
+                window.location.href = '/login';
+            }
+        }
+        return Promise.reject(error);
+    }
+);
+
 export const authService = {
     login: async (email, password) => {
         const response = await api.post('/auth/login', {email, password});
@@ -51,6 +70,13 @@ export const authService = {
     isAdmin: () => {
         const user = authService.getCurrentUser();
         return user ?. roles ?. includes('Admin') || false;
+    },
+    refreshToken: async () => {
+        const response = await api.post('/auth/refresh-token');
+        if (response.data.token) {
+            localStorage.setItem('token', response.data.token);
+        }
+        return response.data;
     }
 };
 

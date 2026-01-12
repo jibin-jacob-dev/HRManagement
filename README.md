@@ -77,7 +77,14 @@ The React-based Single Page Application (SPA).
 *   **Role Management:** Create custom roles and drag-and-drop/checkbox assign permissions.
 *   **User Management:** detailed control over user accounts, statuses, and role assignments.
 
-### 6. Advanced UI/UX
+### 6. Payroll Management
+*   **Salary Components:** Admin-configurable master list of earnings and deductions (e.g., Basic, HRA, PF).
+*   **Salary Structure:** Flexible assignment of components to employees with effective dates and real-time CTC calculation.
+*   **End-to-End Processing:** Complete workflow to Generate Drafts, Review, and Finalize monthly payrolls.
+*   **Smart Calculation:** Automated calculation of earnings, deductions, and net pay based on attendance and working days.
+*   **My Payslips Portal:** Dedicated employee view for searching, viewing, and printing monthly payslip statements.
+
+### 7. Advanced UI/UX
 *   **Dark/Light Mode:** System-wide theme toggling.
 *   **AG Grid Integration:** High-performance data tables with filtering, sorting, and pagination.
 *   **Responsive Design:** Mobile-friendly layout using Bootstrap.

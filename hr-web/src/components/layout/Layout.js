@@ -3,6 +3,8 @@ import Navbar from './Navbar';
 import Sidebar from './Sidebar';
 import './Layout.css';
 
+import SessionMonitor from '../common/SessionMonitor';
+
 const Layout = ({ children }) => {
     const [isCollapsed, setIsCollapsed] = useState(window.innerWidth < 992);
 
@@ -20,6 +22,7 @@ const Layout = ({ children }) => {
 
     return (
         <div className="layout-wrapper">
+            <SessionMonitor />
             <Sidebar isCollapsed={isCollapsed} toggleSidebar={toggleSidebar} />
             <div className="content-wrapper">
                 <Navbar isCollapsed={isCollapsed} toggleSidebar={toggleSidebar} />
